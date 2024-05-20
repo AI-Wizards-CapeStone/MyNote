@@ -30,7 +30,8 @@ export type TableNames = TableNamesInDataModel<DataModel>;
  */
 export type Doc<TableName extends TableNames> = DocumentByName<
   DataModel,
-  TableName
+  TableName,
+  audio
 >;
 
 /**

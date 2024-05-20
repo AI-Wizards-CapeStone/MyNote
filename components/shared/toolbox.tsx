@@ -1,11 +1,11 @@
 "use client";
 
 import React, { ElementRef, useRef, useState } from "react";
-
+import Modal from "react-modal";
+import { openaiSpeechToText } from "../../lib/openaiApi"; // Adjust the import path as needed
 import { useMutation } from "convex/react";
 import TextareaAutosize from "react-textarea-autosize";
-import { ImageIcon, Smile, X } from "lucide-react";
-
+import { ImageIcon, Smile, X, FileAudio } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { IconPicker } from "./icon-picker";
 
@@ -24,11 +24,76 @@ export const Toolbar = ({ initialData, preview }: ToolbarProps) => {
 
   const [isEditing, setIsEditing] = useState(false);
   const [value, setValue] = useState(initialData.title);
-
+  const [isAudioModalOpen, setIsAudioModalOpen] = useState(false);
   const update = useMutation(api.documents.update);
   const removeIcon = useMutation(api.documents.removeIcon);
+  const [audioFile, setAudioFile] = useState<File | null>(null);
+  const [generatedText, setGeneratedText] = useState("");
 
   const coverImage = useCoverImage();
+
+  const handleAddAudioClick = () => {
+    setIsAudioModalOpen(true);
+  };
+
+  const handleAudioFileSelect = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    if (event.target.files && event.target.files[0]) {
+      setAudioFile(event.target.files[0]);
+    }
+  };
+
+  const sqlite3 = require("sqlite3").verbose(); // Import SQLite package
+  const dbPath = 'path/to/your/database.db';
+  const handleAudioUpload = async () => {
+    if (audioFile) {
+      try {
+        // Connect to SQLite database
+        const db = new sqlite3.Database(dbPath);
+
+        // Create table if not exists
+        db.run(`CREATE TABLE IF NOT EXISTS audio (
+          id INTEGER PRIMARY KEY,
+          audio BLOB
+        )`);
+
+        // Convert audio file to buffer
+        const audioBuffer = Buffer.from(await audioFile.arrayBuffer());
+
+        // Store audio in SQLite
+        db.run(
+          `INSERT INTO audio (audio) VALUES (?)`,
+          [audioBuffer],
+          async function (err: { message: any; }) {
+            if (err) {
+              console.error("Error uploading audio file:", err.message);
+              return;
+            }
+            // Handle successful upload
+            console.log("Audio uploaded successfully:", this.lastID);
+
+            // Close the database connection
+            db.close();
+
+            // Call the speech-to-text API to generate the text
+            const response = await openaiSpeechToText(audioFile);
+            setGeneratedText(response.text);
+            setIsAudioModalOpen(false);
+            setAudioFile(null);
+          }
+        );
+      } catch (error) {
+        console.error("Error uploading audio file:", error);
+      }
+    }
+  };
+
+  const closeAudioModal = () => {
+    setIsAudioModalOpen(false);
+    setAudioFile(null);
+    setGeneratedText("");
+  };
 
   const enableInput = () => {
     if (preview) return;
@@ -86,7 +151,7 @@ export const Toolbar = ({ initialData, preview }: ToolbarProps) => {
             variant="outline"
             size="icon"
           >
-            <X className="h-4 w-4" />
+            <X className="size-4" />
           </Button>
         </div>
       )}
@@ -102,7 +167,7 @@ export const Toolbar = ({ initialData, preview }: ToolbarProps) => {
               variant="outline"
               size="sm"
             >
-              <Smile className="mr-2 h-4 w-4" />
+              <Smile className="mr-2 size-4" />
               Add icon
             </Button>
           </IconPicker>
@@ -114,10 +179,73 @@ export const Toolbar = ({ initialData, preview }: ToolbarProps) => {
             size="sm"
             onClick={coverImage.onOpen}
           >
-            <ImageIcon className="mr-2 h-4 w-4" />
+            <ImageIcon className="mr-2 size-4" />
             Add cover
           </Button>
         )}
+        {/* Add new "Add Audio" button */}
+        {!initialData.audio && !preview && (
+          <Button
+            className="text-xs text-muted-foreground"
+            variant="outline"
+            size="sm"
+            onClick={handleAddAudioClick} // Add a new function to handle audio selection
+          >
+            <FileAudio className="mr-2 size-4" />
+            Add audio
+          </Button>
+        )}
+        {/* Audio modal */}
+        <Modal
+          isOpen={isAudioModalOpen}
+          onRequestClose={closeAudioModal}
+          ariaHideApp={false}
+          style={{
+            overlay: {
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+            },
+            content: {
+              top: "50%",
+              left: "50%",
+              right: "auto",
+              bottom: "auto",
+              marginRight: "-50%",
+              transform: "translate(-50%, -50%)",
+              padding: "20px",
+              borderRadius: "8px",
+              width: "600px", // Increase the width
+              height: "400px", // Increase the height
+            },
+          }}
+        >
+          {/* <h2>Hello</h2> */}
+          <input type="file" onChange={handleAudioFileSelect} />
+
+          <div className="mt-4 flex justify-end">
+            <Button
+              className="text-xs text-muted-foreground"
+              variant="outline"
+              size="sm"
+              onClick={handleAudioUpload}
+            >
+              Upload
+            </Button>
+            <Button
+              className="ml-2 text-xs text-muted-foreground"
+              variant="outline"
+              size="sm"
+              onClick={closeAudioModal}
+            >
+              Cancel
+            </Button>
+          </div>
+          {generatedText && (
+            <div className="mt-4">
+              <h3>Generated Text:</h3>
+              <p>{generatedText}</p>
+            </div>
+          )}
+        </Modal>
       </div>
       {isEditing && !preview ? (
         <TextareaAutosize
