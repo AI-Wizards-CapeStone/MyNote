@@ -15,7 +15,7 @@ export const Logo = () => {
         alt="logo"
         className="dark:invert-white"
       />
-      <p className={cn("font-semibold", poppins.className)}>Notion</p>
+      <p className={cn("font-semibold", poppins.className)}>Mynote</p>
     </div>
   );
 };
