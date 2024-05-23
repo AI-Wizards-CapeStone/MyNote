@@ -2,7 +2,6 @@
 
 import React, { ElementRef, useRef, useState } from "react";
 import Modal from "react-modal";
-import { openaiSpeechToText } from "../../lib/openaiApi"; // Adjust the import path as needed
 import { useMutation } from "convex/react";
 import TextareaAutosize from "react-textarea-autosize";
 import { ImageIcon, Smile, X, FileAudio } from "lucide-react";
@@ -13,6 +12,16 @@ import { api } from "@/convex/_generated/api";
 import { Doc } from "@/convex/_generated/dataModel";
 
 import { useCoverImage } from "@/hooks/use-cover-image";
+import { handleAudioUpload } from "./audio-uploader";
+// import openai from "openai";
+
+import fs from "fs";
+import OpenAI from "openai";
+
+const openai = new OpenAI({
+  apiKey: "sk-proj-aDhsTWWvkg27HnOaxSwVT3BlbkFJlYg5afQQUq6rBazxtRbT",
+  dangerouslyAllowBrowser: true,
+});
 
 interface ToolbarProps {
   initialData: Doc<"documents">;
@@ -44,48 +53,18 @@ export const Toolbar = ({ initialData, preview }: ToolbarProps) => {
     }
   };
 
-  const sqlite3 = require("sqlite3").verbose(); // Import SQLite package
-  const dbPath = 'path/to/your/database.db';
-  const handleAudioUpload = async () => {
-    if (audioFile) {
-      try {
-        // Connect to SQLite database
-        const db = new sqlite3.Database(dbPath);
+  const onUploadClick = async () => {
+    if (!audioFile) return;
 
-        // Create table if not exists
-        db.run(`CREATE TABLE IF NOT EXISTS audio (
-          id INTEGER PRIMARY KEY,
-          audio BLOB
-        )`);
+    try {
+      const transcription = await openai.audio.transcriptions.create({
+        file: audioFile,
+        model: "whisper-1",
+      });
 
-        // Convert audio file to buffer
-        const audioBuffer = Buffer.from(await audioFile.arrayBuffer());
-
-        // Store audio in SQLite
-        db.run(
-          `INSERT INTO audio (audio) VALUES (?)`,
-          [audioBuffer],
-          async function (err: { message: any; }) {
-            if (err) {
-              console.error("Error uploading audio file:", err.message);
-              return;
-            }
-            // Handle successful upload
-            console.log("Audio uploaded successfully:", this.lastID);
-
-            // Close the database connection
-            db.close();
-
-            // Call the speech-to-text API to generate the text
-            const response = await openaiSpeechToText(audioFile);
-            setGeneratedText(response.text);
-            setIsAudioModalOpen(false);
-            setAudioFile(null);
-          }
-        );
-      } catch (error) {
-        console.error("Error uploading audio file:", error);
-      }
+      setGeneratedText(transcription.text);
+    } catch (error) {
+      console.error("Error transcribing audio file:", error);
     }
   };
 
@@ -134,6 +113,11 @@ export const Toolbar = ({ initialData, preview }: ToolbarProps) => {
     removeIcon({
       id: initialData._id,
     });
+  };
+
+  const onAddGeneratedText = () => {
+    setValue((prevValue: any) => `${prevValue}\n${generatedText}`);
+    setGeneratedText("");
   };
 
   return (
@@ -226,7 +210,7 @@ export const Toolbar = ({ initialData, preview }: ToolbarProps) => {
               className="text-xs text-muted-foreground"
               variant="outline"
               size="sm"
-              onClick={handleAudioUpload}
+              onClick={onUploadClick}
             >
               Upload
             </Button>
@@ -243,6 +227,14 @@ export const Toolbar = ({ initialData, preview }: ToolbarProps) => {
             <div className="mt-4">
               <h3>Generated Text:</h3>
               <p>{generatedText}</p>
+              <Button
+                className="mt-2 text-xs text-muted-foreground"
+                variant="outline"
+                size="sm"
+                onClick={onAddGeneratedText}
+              >
+                Add to Editor
+              </Button>
             </div>
           )}
         </Modal>
