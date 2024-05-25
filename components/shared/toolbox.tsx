@@ -4,7 +4,7 @@ import React, { ElementRef, useRef, useState } from "react";
 import Modal from "react-modal";
 import { useMutation } from "convex/react";
 import TextareaAutosize from "react-textarea-autosize";
-import { ImageIcon, Smile, X, FileAudio } from "lucide-react";
+import { ImageIcon, Smile, X, FileAudio, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { IconPicker } from "./icon-picker";
 
@@ -15,8 +15,13 @@ import { useCoverImage } from "@/hooks/use-cover-image";
 import { handleAudioUpload } from "./audio-uploader";
 // import openai from "openai";
 
-import fs from "fs";
 import OpenAI from "openai";
+import { update, removeIcon } from "@/convex/documents";
+import { all } from "axios";
+import { on } from "events";
+import { before, after } from "node:test";
+import { object } from "zod";
+import {marked} from "marked";
 
 const openai = new OpenAI({
   apiKey: "sk-proj-aDhsTWWvkg27HnOaxSwVT3BlbkFJlYg5afQQUq6rBazxtRbT",
@@ -26,9 +31,14 @@ const openai = new OpenAI({
 interface ToolbarProps {
   initialData: Doc<"documents">;
   preview?: boolean;
+  onAddContent: (content: string) => void;
 }
 
-export const Toolbar = ({ initialData, preview }: ToolbarProps) => {
+export const Toolbar = ({
+  initialData,
+  preview,
+  onAddContent,
+}: ToolbarProps) => {
   const inputRef = useRef<ElementRef<"textarea">>(null);
 
   const [isEditing, setIsEditing] = useState(false);
@@ -38,8 +48,16 @@ export const Toolbar = ({ initialData, preview }: ToolbarProps) => {
   const removeIcon = useMutation(api.documents.removeIcon);
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [generatedText, setGeneratedText] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [summarizeText, setSummarizeText] = useState("");
 
   const coverImage = useCoverImage();
+
+  const handleGeneratedText = () => {
+    const newText = generatedText;
+    setGeneratedText(newText);
+    onAddContent(newText);
+  };
 
   const handleAddAudioClick = () => {
     setIsAudioModalOpen(true);
@@ -55,18 +73,47 @@ export const Toolbar = ({ initialData, preview }: ToolbarProps) => {
 
   const onUploadClick = async () => {
     if (!audioFile) return;
-
+  
+    // Set loading state to true
+    setLoading(true);
+  
     try {
-      const transcription = await openai.audio.transcriptions.create({
-        file: audioFile,
-        model: "whisper-1",
+      const formData = new FormData();
+      formData.append("file", audioFile);
+  
+      const response = await fetch("http://localhost:3002/upload", {
+        method: "POST",
+        body: formData,
       });
+  
+      if (!response.ok) {
+        throw new Error("Failed to upload audio file");
+      }
 
-      setGeneratedText(transcription.text);
+      const data = await response.json();
+
+      // Assuming the response contains the transcription text
+      const transcriptionText = data.text;
+
+      const htmlText = marked(transcriptionText);
+
+      // Set the generated text
+      if (typeof htmlText === 'string') {
+        setGeneratedText(htmlText);
+      } else {
+        const resolvedHtmlText = await htmlText;
+        setGeneratedText(resolvedHtmlText);
+      }
     } catch (error) {
-      console.error("Error transcribing audio file:", error);
+      console.error("Error uploading/transcribing audio file:", error);
+    } finally {
+      // Clear loading state regardless of success or failure
+      setLoading(false);
     }
   };
+  
+
+  // handle Summarize text
 
   const closeAudioModal = () => {
     setIsAudioModalOpen(false);
@@ -115,13 +162,11 @@ export const Toolbar = ({ initialData, preview }: ToolbarProps) => {
     });
   };
 
-  const onAddGeneratedText = () => {
-    setValue((prevValue: any) => `${prevValue}\n${generatedText}`);
-    setGeneratedText("");
-  };
+  // how to this
 
   return (
     <div className="group relative pl-[54px]">
+      {/* <ParentComponent /> */}
       {!!initialData.icon && !preview && (
         <div className="group/icon flex items-center gap-x-2 pt-6">
           <IconPicker onChange={onIconSelect}>
@@ -179,7 +224,6 @@ export const Toolbar = ({ initialData, preview }: ToolbarProps) => {
             Add audio
           </Button>
         )}
-        {/* Audio modal */}
         <Modal
           isOpen={isAudioModalOpen}
           onRequestClose={closeAudioModal}
@@ -223,31 +267,37 @@ export const Toolbar = ({ initialData, preview }: ToolbarProps) => {
               Cancel
             </Button>
           </div>
-          {generatedText && (
-            <div className="mt-4">
-              <h3>Generated Text:</h3>
-              <p>{generatedText}</p>
-              <Button
-                className="mt-2 text-xs text-muted-foreground"
-                variant="outline"
-                size="sm"
-                onClick={onAddGeneratedText}
-              >
-                Add to Editor
-              </Button>
-            </div>
+          {loading ? (
+            <div>Loading...</div>
+          ) : (
+            generatedText && (
+              <div className="mt-4">
+                <h3>Generated Text:</h3>
+                <p>{generatedText}</p>
+                <Button
+                  className="mt-2 text-xs text-muted-foreground"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleGeneratedText}
+                >
+                  Add to Editor
+                </Button>
+              </div>
+            )
           )}
         </Modal>
       </div>
       {isEditing && !preview ? (
-        <TextareaAutosize
-          ref={inputRef}
-          onBlur={disableInput}
-          onKeyDown={onKeyDown}
-          value={value}
-          onChange={(e) => onInput(e.target.value)}
-          className="resize-none break-words bg-transparent text-5xl font-bold text-[#3F3F3F] outline-none dark:text-[#CFCFCF]"
-        />
+        <div>
+          <TextareaAutosize
+            ref={inputRef}
+            onBlur={disableInput}
+            onKeyDown={onKeyDown}
+            value={value}
+            onChange={(e) => onInput(e.target.value)}
+            className="resize-none break-words bg-transparent text-5xl font-bold text-[#3F3F3F] outline-none dark:text-[#CFCFCF]"
+          />
+        </div>
       ) : (
         <div
           onClick={enableInput}
