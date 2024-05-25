@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 
 import { useMutation, useQuery } from "convex/react";
@@ -39,6 +39,21 @@ export default function Document({ params: { documentId } }: Props) {
     });
   };
 
+  const [newContent, setNewContent] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (newContent !== null) {
+      const timeout = setTimeout(() => {
+        setNewContent(null); // Reset newContent after it's been used
+      }, 1000); // Set a timeout to ensure it's cleared after a delay
+      return () => clearTimeout(timeout); // Cleanup function
+    }
+  }, [newContent]);
+
+  const handleAddContent = (generatedText : string) => {
+    setNewContent(generatedText); // Example content to add
+   }
+
   if (document === undefined) {
     return (
       <div>
@@ -63,8 +78,12 @@ export default function Document({ params: { documentId } }: Props) {
     <div className="pb-40">
       <Cover url={document.coverImage} />
       <div className="mx-auto md:max-w-3xl lg:max-w-4xl">
-        <Toolbar initialData={document} />
-        <Editor onChange={onChange} initialContent={document.content} />
+        <Toolbar initialData={document} onAddContent={handleAddContent} />
+        <Editor
+          onChange={onChange}
+          initialContent={document.content}
+          newContent={newContent || undefined}
+        />
       </div>
     </div>
   );
