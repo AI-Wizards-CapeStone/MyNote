@@ -16,17 +16,9 @@ import { handleAudioUpload } from "./audio-uploader";
 // import openai from "openai";
 
 import OpenAI from "openai";
-import { update, removeIcon } from "@/convex/documents";
-import { all } from "axios";
-import { on } from "events";
-import { before, after } from "node:test";
-import { object } from "zod";
+
 import {marked} from "marked";
 
-const openai = new OpenAI({
-  apiKey: "sk-proj-aDhsTWWvkg27HnOaxSwVT3BlbkFJlYg5afQQUq6rBazxtRbT",
-  dangerouslyAllowBrowser: true,
-});
 
 interface ToolbarProps {
   initialData: Doc<"documents">;

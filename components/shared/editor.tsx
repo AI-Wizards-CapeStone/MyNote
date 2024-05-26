@@ -2,18 +2,31 @@
 
 import { useTheme } from "next-themes";
 import { useState, useEffect, useCallback, ChangeEvent } from "react";
-import { BlockNoteEditor, type PartialBlock } from "@blocknote/core";
+import {
+  BlockNoteEditor,
+  BlockNoteSchema,
+  defaultBlockSpecs,
+  filterSuggestionItems,
+  insertOrUpdateBlock,
+  type PartialBlock,
+} from "@blocknote/core";
 import "@blocknote/mantine/style.css";
 import "@blocknote/core/fonts/inter.css";
-import { useCreateBlockNote } from "@blocknote/react";
+import {
+  SuggestionMenuController,
+  getDefaultReactSlashMenuItems,
+  useCreateBlockNote,
+} from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/mantine";
 import { useEdgeStore } from "@/lib/edgestore";
+import { PDF } from "./PDF";
+import { RiFilePdfFill } from "react-icons/ri";
 
 interface EditorProps {
   onChange: (value: string) => void;
   initialContent?: string;
   editable?: boolean;
-  newContent?: string; // Add newContent prop
+  newContent?: string | PartialBlock[]; // Add newContent prop
 }
 
 const Editor = ({
@@ -30,7 +43,17 @@ const Editor = ({
     return response.url;
   };
 
-  const editor: BlockNoteEditor = useCreateBlockNote({
+  const schema = BlockNoteSchema.create({
+    blockSpecs: {
+      // Adds all default blocks.
+      ...defaultBlockSpecs,
+      // Adds the PDF block.
+      pdf: PDF,
+    },
+  });
+
+  const editor = useCreateBlockNote({
+    schema,
     initialContent: initialContent
       ? (JSON.parse(initialContent) as PartialBlock[])
       : undefined,
@@ -53,16 +76,18 @@ const Editor = ({
     return () => clearInterval(interval);
   }, [editor, content, onChange]);
 
-  // Update content when newContent prop changes
-  // const [newContents, setNewContents] = useState<string | null>(null);
-
-  // const markdownInputChanged = useCallback(
-  //   async (e: ChangeEvent<HTMLTextAreaElement>) => {
-  //     // Whenever the current Markdown content changes, parse it to HTML.
-  //     setNewContents(e.target.value);
-  //   },
-  //   []
-  // );
+  // Slash menu item to insert a PDF block
+  const insertPDF = (editor: typeof schema.BlockNoteEditor) => ({
+    title: "PDF",
+    onItemClick: () => {
+      insertOrUpdateBlock(editor, {
+        type: "pdf",
+      });
+    },
+    aliases: ["pdf", "document", "embed", "file"],
+    group: "Other",
+    icon: <RiFilePdfFill />,
+  });
 
   useEffect(() => {
     async function loadInitialHTML() {
@@ -81,22 +106,24 @@ const Editor = ({
     loadInitialHTML();
   }, [newContent, editor]);
 
-  // useEffect(() => {
-  //   if (newContent) {
-  //     const referenceBlock = editor.document[editor.document.length - 1]; // Insert at the end
-  //     const blocksToInsert: PartialBlock[] = [
-  //       { type: "paragraph", content: newContent },
-  //     ];
-  //     editor.insertBlocks(blocksToInsert, referenceBlock, "after");
-  //   }
-  // }, [newContent, editor]);
-
   return (
     <div>
       <BlockNoteView
         editor={editor}
         theme={resolvedTheme === "dark" ? "dark" : "light"}
-      />
+        slashMenu={false}
+      >
+        <SuggestionMenuController
+          triggerCharacter={"/"}
+          getItems={async (query) =>
+            // Gets all default slash menu items and `insertPDF` item.
+            filterSuggestionItems(
+              [...getDefaultReactSlashMenuItems(editor), insertPDF(editor)],
+              query
+            )
+          }
+        />
+      </BlockNoteView>
     </div>
   );
 };

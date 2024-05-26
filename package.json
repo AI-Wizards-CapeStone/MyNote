@@ -10,6 +10,7 @@
   },
   "dependencies": {
 <<<<<<< HEAD
+<<<<<<< HEAD
     "@blocknote/core": "^0.9.6",
     "@blocknote/react": "^0.9.6",
     "@clerk/clerk-react": "^4.27.2",
@@ -24,6 +25,17 @@
     "@edgestore/server": "^0.1.6",
     "@mantine/core": "^7.10.0",
 >>>>>>> 087ce60 (editor-updated)
+=======
+    "@blocknote/core": "^0.13.0",
+    "@blocknote/mantine": "^0.13.0",
+    "@blocknote/react": "^0.13.0",
+    "@blocknote/shadcn": "^0.13.0",
+    "@clerk/clerk-react": "^4.30.5",
+    "@edgestore/react": "^0.1.6",
+    "@edgestore/server": "^0.1.6",
+    "@mantine/core": "^7.7.1",
+    "@nextui-org/dropdown": "^2.1.23",
+>>>>>>> f5f9909 (pdf-embedded)
     "@radix-ui/react-alert-dialog": "^1.0.5",
     "@radix-ui/react-avatar": "^1.0.4",
     "@radix-ui/react-dialog": "^1.0.5",
@@ -41,8 +53,14 @@
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-tailwindcss": "^3.14.3",
     "lucide-react": "^0.331.0",
+<<<<<<< HEAD
+=======
+    "marked": "^12.0.2",
+    "mongodb": "^6.6.2",
+>>>>>>> f5f9909 (pdf-embedded)
     "next": "14.1.0",
     "next-themes": "^0.2.1",
+    "ng2-pdf-viewer": "^10.2.2",
     "openai": "^4.47.1",
     "prettier": "^3.0.3",
     "react": "^18",
