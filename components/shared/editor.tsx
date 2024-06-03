@@ -1,9 +1,9 @@
 "use client";
 
 import { useTheme } from "next-themes";
-import { useState, useEffect, useCallback, ChangeEvent } from "react";
+// import { useState, useEffect, useCallback, ChangeEvent } from "react";
 import {
-  BlockNoteEditor,
+  // BlockNoteEditor,
   BlockNoteSchema,
   defaultBlockSpecs,
   filterSuggestionItems,
@@ -12,6 +12,7 @@ import {
 } from "@blocknote/core";
 import "@blocknote/mantine/style.css";
 import "@blocknote/core/fonts/inter.css";
+import "@blocknote/mantine/style.css";
 import {
   SuggestionMenuController,
   getDefaultReactSlashMenuItems,
@@ -30,10 +31,7 @@ interface EditorProps {
 }
 
 const Editor = ({
-  onChange,
   initialContent,
-  editable,
-  newContent,
 }: EditorProps) => {
   const { resolvedTheme } = useTheme();
   const { edgestore } = useEdgeStore();
@@ -60,21 +58,21 @@ const Editor = ({
     uploadFile: handleUpload,
   });
 
-  const [content, setContent] = useState(
-    initialContent ? (JSON.parse(initialContent) as PartialBlock[]) : []
-  );
+  // const [content, setContent] = useState(
+  //   initialContent ? (JSON.parse(initialContent) as PartialBlock[]) : []
+  // );
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const newContent = editor.document;
-      if (JSON.stringify(newContent) !== JSON.stringify(content)) {
-        setContent(newContent);
-        onChange(JSON.stringify(newContent, null, 2));
-      }
-    }, 500);
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     const newContent = editor.document;
+  //     if (JSON.stringify(newContent) !== JSON.stringify(content)) {
+  //       setContent(newContent);
+  //       onChange(JSON.stringify(newContent, null, 2));
+  //     }
+  //   }, 500);
 
-    return () => clearInterval(interval);
-  }, [editor, content, onChange]);
+  //   return () => clearInterval(interval);
+  // }, [editor, content, onChange]);
 
   // Slash menu item to insert a PDF block
   const insertPDF = (editor: typeof schema.BlockNoteEditor) => ({
@@ -88,23 +86,6 @@ const Editor = ({
     group: "Other",
     icon: <RiFilePdfFill />,
   });
-
-  useEffect(() => {
-    async function loadInitialHTML() {
-      if (newContent) {
-        // Parse Markdown to HTML
-        // const htmlContent = await editor.tryParseMarkdownToBlocks(newContent);
-        // Parse HTML to Blocks
-        const blocks = await editor.tryParseHTMLToBlocks(newContent);
-        // Insert Blocks
-        if (blocks.length > 0) {
-          const referenceBlock = editor.document[editor.document.length - 1]; // Insert at the end
-          editor.insertBlocks(blocks, referenceBlock, "after");
-        }
-      }
-    }
-    loadInitialHTML();
-  }, [newContent, editor]);
 
   return (
     <div>
