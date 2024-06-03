@@ -4,7 +4,7 @@ import React, { ElementRef, useRef, useState } from "react";
 import Modal from "react-modal";
 import { useMutation } from "convex/react";
 import TextareaAutosize from "react-textarea-autosize";
-import { ImageIcon, Smile, X, FileAudio, Moon, Sun } from "lucide-react";
+import { ImageIcon, Smile, X, FileAudio, Moon, Sun, BookA } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { IconPicker } from "./icon-picker";
 
@@ -12,13 +12,15 @@ import { api } from "@/convex/_generated/api";
 import { Doc } from "@/convex/_generated/dataModel";
 
 import { useCoverImage } from "@/hooks/use-cover-image";
-import { handleAudioUpload } from "./audio-uploader";
+// import { handleAudioUpload } from "./audio-uploader";
 // import openai from "openai";
 
-import OpenAI from "openai";
+// import OpenAI from "openai";
 
-import {marked} from "marked";
-
+import { marked } from "marked";
+// import ImageFromClipboard from "./image-from-clipboard";
+import axios from "axios";
+import ImageProcessing from "./image-processing";
 
 interface ToolbarProps {
   initialData: Doc<"documents">;
@@ -36,12 +38,16 @@ export const Toolbar = ({
   const [isEditing, setIsEditing] = useState(false);
   const [value, setValue] = useState(initialData.title);
   const [isAudioModalOpen, setIsAudioModalOpen] = useState(false);
+  const [isExplainModalOpen, setExplainModalOpen] = useState(false);
   const update = useMutation(api.documents.update);
   const removeIcon = useMutation(api.documents.removeIcon);
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [generatedText, setGeneratedText] = useState("");
   const [loading, setLoading] = useState(false);
   const [summarizeText, setSummarizeText] = useState("");
+  const [explanationText, setExplanationText] = useState("");
+  const [aiText, setAiText] = useState("");
+  const [error, setError] = useState<string>("");
 
   const coverImage = useCoverImage();
 
@@ -49,6 +55,13 @@ export const Toolbar = ({
     const newText = generatedText;
     setGeneratedText(newText);
     onAddContent(newText);
+  };
+
+  const handleGeneratedTextAi = () => {
+    // const newText = aiText;
+    // setGeneratedText(newText);
+    // console.log(newText);
+    onAddContent(aiText);
   };
 
   const handleAddAudioClick = () => {
@@ -65,19 +78,19 @@ export const Toolbar = ({
 
   const onUploadClick = async () => {
     if (!audioFile) return;
-  
+
     // Set loading state to true
     setLoading(true);
-  
+
     try {
       const formData = new FormData();
       formData.append("file", audioFile);
-  
-      const response = await fetch("http://localhost:3002/upload", {
+
+      const response = await fetch("http://localhost:3099/upload", {
         method: "POST",
         body: formData,
       });
-  
+
       if (!response.ok) {
         throw new Error("Failed to upload audio file");
       }
@@ -90,7 +103,7 @@ export const Toolbar = ({
       const htmlText = marked(transcriptionText);
 
       // Set the generated text
-      if (typeof htmlText === 'string') {
+      if (typeof htmlText === "string") {
         setGeneratedText(htmlText);
       } else {
         const resolvedHtmlText = await htmlText;
@@ -103,9 +116,47 @@ export const Toolbar = ({
       setLoading(false);
     }
   };
-  
 
-  // handle Summarize text
+  const onClickGen = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      const prompt = (event.target as any).elements.prompt.value;
+
+      const response = await axios.post(
+        "http://localhost:3099/api/generateText",
+        { prompt },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const generatedText = response.data.generatedText;
+
+      setAiText(generatedText);
+
+      const htmlText = marked(generatedText);
+
+      // Set the generated text
+      if (typeof htmlText === "string") {
+        setAiText(htmlText);
+        // onAddContent(htmlText); // Call onAddContent with the generated text
+      } else {
+        const resolvedHtmlText = await htmlText;
+        setAiText(resolvedHtmlText);
+        // onAddContent(resolvedHtmlText); // Call onAddContent with the generated text
+      }
+    } catch (error) {
+      console.error("Error generating text:", error);
+      setError("Failed to generate text. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const closeAudioModal = () => {
     setIsAudioModalOpen(false);
@@ -154,11 +205,12 @@ export const Toolbar = ({
     });
   };
 
-  // how to this
+  const handleConvertToLatex = async () => {
+    setExplainModalOpen(true);
+  };
 
   return (
     <div className="group relative pl-[54px]">
-      {/* <ParentComponent /> */}
       {!!initialData.icon && !preview && (
         <div className="group/icon flex items-center gap-x-2 pt-6">
           <IconPicker onChange={onIconSelect}>
@@ -204,13 +256,87 @@ export const Toolbar = ({
             Add cover
           </Button>
         )}
-        {/* Add new "Add Audio" button */}
+        <Button
+          className="ml-2 text-xs text-muted-foreground"
+          variant="outline"
+          size="sm"
+          onClick={handleConvertToLatex}
+        >
+          <BookA className="mr-2 size-4" />
+          Convert To LaTex
+        </Button>
+        <Modal
+          isOpen={isExplainModalOpen}
+          onRequestClose={() => setExplainModalOpen(false)}
+          ariaHideApp={false}
+          style={{
+            overlay: {
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+            },
+            content: {
+              top: "50%",
+              left: "50%",
+              right: "auto",
+              bottom: "auto",
+              marginRight: "-50%",
+              transform: "translate(-50%, -50%)",
+              padding: "20px",
+              borderRadius: "8px",
+              width: "600px",
+              height: "400px",
+            },
+          }}
+        >
+          {/* <form onSubmit={onClickGen}>
+            <label>
+              Prompt:
+              <input type="text" name="prompt" required />
+            </label>
+            <Button
+              className="ml-2 text-xs text-muted-foreground"
+              variant="outline"
+              size="sm"
+              type="submit"
+            >
+              Generate Text
+            </Button>
+          </form> */}
+          {/* {loading ? (
+            <div>Loading...</div>
+          ) : (
+            aiText && (
+              <div className="mt-4">
+                <h3>Generated Text:</h3>
+                <p>{aiText}</p>
+                <Button
+                  className="mt-2 text-xs text-muted-foreground"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleGeneratedTextAi}
+                >
+                  Add to Editor
+                </Button>
+              </div>
+            )
+          )} */}
+          <ImageProcessing onAddContent={onAddContent} />
+          <div className="mt-4 flex justify-end">
+            <Button
+              className="ml-2 text-xs text-muted-foreground"
+              variant="outline"
+              size="sm"
+              onClick={() => setExplainModalOpen(false)}
+            >
+              Cancel
+            </Button>
+          </div>
+        </Modal>
         {!initialData.audio && !preview && (
           <Button
             className="text-xs text-muted-foreground"
             variant="outline"
             size="sm"
-            onClick={handleAddAudioClick} // Add a new function to handle audio selection
+            onClick={handleAddAudioClick}
           >
             <FileAudio className="mr-2 size-4" />
             Add audio
@@ -233,14 +359,12 @@ export const Toolbar = ({
               transform: "translate(-50%, -50%)",
               padding: "20px",
               borderRadius: "8px",
-              width: "600px", // Increase the width
-              height: "400px", // Increase the height
+              width: "600px",
+              height: "400px",
             },
           }}
         >
-          {/* <h2>Hello</h2> */}
           <input type="file" onChange={handleAudioFileSelect} />
-
           <div className="mt-4 flex justify-end">
             <Button
               className="text-xs text-muted-foreground"

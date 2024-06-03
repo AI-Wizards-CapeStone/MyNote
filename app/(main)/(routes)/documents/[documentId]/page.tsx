@@ -16,7 +16,7 @@ import {
   DropdownItem,
 } from "@nextui-org/dropdown";
 import { useEdgeStore } from "@/lib/edgestore";
-import PDFViewer from "@/components/shared/pdf-viewer";
+// import PDFViewer from "@/components/shared/pdf-viewer";
 
 type Props = {
   params: {
@@ -118,38 +118,8 @@ export default function Document({ params: { documentId } }: Props) {
     return <div>Not found...</div>;
   }
 
-  const handleAddPDF = () => {
-    setShowPDFPopup(true);
-  };
-  const handleFileChange = (event: any) => {
-    const file = event.target.files[0];
-    // Handle the selected file, e.g., upload or process it
-    console.log("Selected file:", file);
-    setShowPDFPopup(false); // Close the popup after file selection
-  };
-
   return (
     <div className="pb-40 relative">
-      <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2">
-        <Dropdown backdrop="blur">
-          <DropdownTrigger>
-            <Button variant="outline">Open Menu</Button>
-          </DropdownTrigger>
-          <DropdownMenu aria-label="Static Actions">
-            <DropdownItem key="new" onClick={hadleAddTestContent}>
-              Add Content
-            </DropdownItem>
-            <DropdownItem key="pdf" onClick={handleAddPDF}>
-              Add PDF
-            </DropdownItem>
-            <DropdownItem key="copy">Copy link</DropdownItem>
-            <DropdownItem key="edit">Edit file</DropdownItem>
-            <DropdownItem key="delete" className="text-danger" color="danger">
-              Delete file
-            </DropdownItem>
-          </DropdownMenu>
-        </Dropdown>
-      </div>
       <Cover url={document.coverImage} />
       <div className="mx-auto md:max-w-3xl lg:max-w-4xl">
         <Toolbar initialData={document} onAddContent={handleAddContent} />
@@ -158,22 +128,6 @@ export default function Document({ params: { documentId } }: Props) {
           initialContent={document.content}
           newContent={newContent || undefined}
         />
-        {showPDFPopup && (
-          <div className="pdf-popup">
-            <input
-              type="file"
-              accept="application/pdf"
-              onChange={handlePDFEmbedded}
-            />
-            <button onClick={() => setShowPDFPopup(false)}>Cancel</button>
-          </div>
-        )}
-        <iframe
-          src={pdfUrl}
-          title="PDF Viewer"
-          width="100%"
-          height="500px"
-        ></iframe>
       </div>
     </div>
   );
