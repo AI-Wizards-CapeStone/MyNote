@@ -47,8 +47,14 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "cmdk": "^0.2.0",
+<<<<<<< HEAD
     "convex": "^1.5.1",
     "emoji-picker-react": "^4.5.15",
+=======
+    "convex": "^1.9.1",
+    "cors": "^2.8.5",
+    "emoji-picker-react": "^4.7.18",
+>>>>>>> 1081f38 (add content function)
     "eslint-config-prettier": "^9.0.0",
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-tailwindcss": "^3.14.3",
