@@ -158,22 +158,6 @@ export default function Document({ params: { documentId } }: Props) {
           initialContent={document.content}
           newContent={newContent || undefined}
         />
-        {showPDFPopup && (
-          <div className="pdf-popup">
-            <input
-              type="file"
-              accept="application/pdf"
-              onChange={handlePDFEmbedded}
-            />
-            <button onClick={() => setShowPDFPopup(false)}>Cancel</button>
-          </div>
-        )}
-        <iframe
-          src={pdfUrl}
-          title="PDF Viewer"
-          width="100%"
-          height="500px"
-        ></iframe>
       </div>
     </div>
   );

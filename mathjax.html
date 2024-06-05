@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+  <head>
+    <script src="https://unpkg.com/stackedit-js@1.0.7/docs/lib/stackedit.min.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  </head>
+  <body>
+    <textarea id="markdown-content"></textarea>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const el = document.getElementById("markdown-content");
+        const stackedit = new Stackedit();
+
+        // Open the iframe
+        stackedit.openFile({
+          name: "Filename",
+          content: {
+            text: "Hello **CommonMark** writer!",
+            properties: {
+              extensions: {
+                preset: "default",
+              },
+            },
+          },
+        });
+
+        // Listen to StackEdit events and apply the changes to the textarea.
+        stackedit.on("fileChange", (file) => {
+          el.value = file.content.text;
+        });
+      });
+    </script>
+  </body>
+</html>
