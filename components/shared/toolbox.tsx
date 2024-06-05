@@ -11,14 +11,9 @@ import { IconPicker } from "./icon-picker";
 import { api } from "@/convex/_generated/api";
 import { Doc } from "@/convex/_generated/dataModel";
 
-import { useCoverImage } from "@/hooks/use-cover-image";
-import { handleAudioUpload } from "./audio-uploader";
-// import openai from "openai";
+import { useCoverImage } from "@/hooks/use-cover-image"
 
-import OpenAI from "openai";
-
-import {marked} from "marked";
-
+import { marked } from "marked";
 
 interface ToolbarProps {
   initialData: Doc<"documents">;
@@ -41,11 +36,16 @@ export const Toolbar = ({
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [generatedText, setGeneratedText] = useState("");
   const [loading, setLoading] = useState(false);
-  const [summarizeText, setSummarizeText] = useState("");
 
   const coverImage = useCoverImage();
 
   const handleGeneratedText = () => {
+    const newText = generatedText;
+    setGeneratedText(newText);
+    onAddContent(newText);
+  };
+
+  const handleGeneratedTest = () => {
     const newText = generatedText;
     setGeneratedText(newText);
     onAddContent(newText);
@@ -65,32 +65,34 @@ export const Toolbar = ({
 
   const onUploadClick = async () => {
     if (!audioFile) return;
-  
+
     // Set loading state to true
     setLoading(true);
-  
+
     try {
       const formData = new FormData();
       formData.append("file", audioFile);
-  
-      const response = await fetch("http://localhost:3002/upload", {
+
+      const response = await fetch("/api/uploadImage", {
         method: "POST",
         body: formData,
       });
-  
+
       if (!response.ok) {
         throw new Error("Failed to upload audio file");
       }
 
       const data = await response.json();
 
+      console.log(data);
+
       // Assuming the response contains the transcription text
       const transcriptionText = data.text;
 
-      const htmlText = marked(transcriptionText);
+      const htmlText = transcriptionText;
 
       // Set the generated text
-      if (typeof htmlText === 'string') {
+      if (typeof htmlText === "string") {
         setGeneratedText(htmlText);
       } else {
         const resolvedHtmlText = await htmlText;
@@ -103,7 +105,6 @@ export const Toolbar = ({
       setLoading(false);
     }
   };
-  
 
   // handle Summarize text
 
