@@ -1,23 +1,14 @@
 # Next.js 14 Notion
 
-<!-- GitHub badges -->
-
-[![Latest release](https://img.shields.io/github/v/release/ladunjexa/nextjs14-notion?label=Latest%20release&style=social)](https://github.com/ladunjexa/nextjs14-notion/releases/tag/v0.1.0)
-[![Stars](https://img.shields.io/github/stars/ladunjexa/nextjs14-notion?style=social)](https://github.com/ladunjexa/nextjs14-notion/stargazers)
-[![Fork](https://img.shields.io/github/forks/ladunjexa/nextjs14-notion?style=social)](https://github.com/ladunjexa/nextjs14-notion/forks)
-[![GitHub commits](https://img.shields.io/github/commit-activity/t/ladunjexa/nextjs14-notion?style=social&logo=github)](https://github.com/ladunjexa/nextjs14-notion/commits)
-[![Pull requests](https://img.shields.io/github/issues-pr/ladunjexa/nextjs14-notion?style=social&logo=github)](https://github.com/ladunjexa/nextjs14-notion/pulls)
+&lt;!-- GitHub badges --&gt;
 
 ![demo](https://i.ibb.co/Qm9fb95/nextjs14-notion-vercel-app-1.png)
 
-[![ladunjexa](https://custom-icon-badges.demolab.com/badge/made%20by%20-ladunjexa-556bf2?logo=github&logoColor=white&labelColor=101827)](https://github.com/luadnjexa)
-[![License](https://img.shields.io/github/license/ladunjexa/nextjs14-notion?color=dddddd&labelColor=000000)](https://github.com/ladunjexa/nextjs14-notion/blob/main/LICENSE)
-[![Top Language](https://img.shields.io/github/languages/top/ladunjexa/nextjs14-notion?logo=github&logoColor=%23007ACC&label=TypeScript)](https://www.typescriptlang.org/)
-[![Contributors](https://img.shields.io/github/contributors/ladunjexa/nextjs14-notion?style=flat&color=orange&label=Contributors)](https://github.com/ladunjexa/nextjs14-notion/graphs/contributors)
 ![Release](https://img.shields.io/github/release/ladunjexa/nextjs14-notion.svg)
+
 ![PRs](https://img.shields.io/badge/PRs-welcome-ff69b4.svg?style=shields)
+
 ![deployment](https://img.shields.io/github/deployments/ladunjexa/nextjs14-notion/Production?logo=vercel&label=Website)
-[![Known Vulnerabilities](https://snyk.io/test/github/ladunjexa/nextjs14-notion/badge.svg)](https://snyk.io/test/github/ladunjexa/nextjs14-notion)
 
 ## 🌐 Live Demo
 
@@ -27,7 +18,7 @@ Explore the live demonstration of the project: [nextjs14-notion](https://nextjs1
 
 **Notion** is a Notion-like application built with Next.js 14, React, Convex, Tailwind, Clerk, and EdgeStore. It is a real-time database and Notion-style editor that allows you to create, edit, and delete documents. It also allows you to publish your note to the web.
 
-<details><summary><b>Folder Structure</b></summary>
+&lt;details&gt;&lt;summary&gt;&lt;b&gt;Folder Structure&lt;/b&gt;&lt;/summary&gt;
 
 ```bash
 nextjs14-notion/
@@ -135,11 +126,11 @@ nextjs14-notion/
 └── tsconfig.ts
 ```
 
-</details>
+&lt;/details&gt;
 
 ## 📖 Table of Contents
 
-<details><summary>Table of Contents</summary>
+&lt;details&gt;&lt;summary&gt;Table of Contents&lt;/summary&gt;
 
 - [Live Demo](#-live-demo)
 - [Description](#-description)
@@ -161,19 +152,18 @@ nextjs14-notion/
 - [Contact Us](#-contact-us)
 - [License](#-license)
 
-</details>
+&lt;/details&gt;
 
 ## ✨ Technologies Used
 
-<details><summary><b>Notion</b> is built using the following technologies:</summary>
+&lt;details&gt;&lt;summary&gt;&lt;b&gt;Notion&lt;/b&gt; is built using the following technologies:&lt;/summary&gt;
 
 - [TypeScript](https://www.typescriptlang.org/): TypeScript is a typed superset of JavaScript that compiles to plain JavaScript.
 - [Next.js](https://nextjs.org/): Next.js is a React framework for building server-side rendered and statically generated web applications.
 - [Tailwind CSS](https://tailwindcss.com/): Tailwind CSS is a utility-first CSS framework for rapidly building custom user interfaces.
 - [Convex](https://convex.dev/): Convex is a TypeScript-first ORM for Node.js and the browser.
 - [Clerk](https://clerk.dev/): Clerk is a developer-first identity and user management service.
-- [ESLint](https://eslint.org/): ESLint is a static code analysis tool for
-  identifying problematic patterns found in JavaScript code.
+- [ESLint](https://eslint.org/): ESLint is a static code analysis tool for identifying problematic patterns found in JavaScript code.
 - [Prettier](https://prettier.io/): Prettier is an opinionated code formatter.
 - [Shadcn-UI](https://ui.shadcn.com/): Shadcn UI is a React UI library that helps developers rapidly build modern web applications.
 - [Zustand](https://docs.pmnd.rs/zustand/getting-started/introduction): Zustand is a small, fast and scalable bearbones state-management solution.
@@ -181,9 +171,7 @@ nextjs14-notion/
 - [Zod](https://zod.dev/): Zod is a TypeScript-first schema declaration and validation library.
 - [Vercel](https://vercel.com/): Vercel is a cloud platform for frontend developers, providing the frameworks, workflows, and infrastructure to build a faster, more personalized Web.
 
-</details><br/>
-
-[![Technologies Used](https://skillicons.dev/icons?i=ts,nextjs,tailwind,vercel)](https://skillicons.dev)
+&lt;/details&gt;&lt;br/&gt;
 
 ## 🧰 Get Started
 
@@ -235,23 +223,23 @@ npm run dev
 
 **Step 4:**
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open <http://localhost:3000> with your browser to see the result.
 
 ### 📜 Scripts
 
 All scripts are defined in the `package.json` file. Here is a list of all scripts:
 
-| Script          | Action                                      |
-| :-------------- | :------------------------------------------ |
-| `npm install`   | Installs dependencies                       |
-| `npm run dev`   | Starts local dev server at `localhost:3000` |
-| `npm run build` | Build your production site to `./dist/`     |
-| `npm run start` | Start your production site locally          |
-| `npm run lint`  | Run ESLint                                  |
+| Script | Action |
+| --- | --- |
+| `npm install` | Installs dependencies |
+| `npm run dev` | Starts local dev server at `localhost:3000` |
+| `npm run build` | Build your production site to `./dist/` |
+| `npm run start` | Start your production site locally |
+| `npm run lint` | Run ESLint |
 
 ## 🔒 Environment Variables
 
-Environment variables[^6] can be used for configuration. They must be set before running the app.
+Environment variables\[^6\] can be used for configuration. They must be set before running the app.
 
 > [Environment variables](https://en.wikipedia.org/wiki/Environment_variable) are variables that are set in the operating system or shell, typically used to configure programs.
 
@@ -284,13 +272,9 @@ npm run build
 
 The easiest way to deploy this Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme).
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fladunjexa%2Fnextjs14-notion)
-
 #### Deploy on Netlify
 
 You can also deploy this Next.js app with [Netlify](https://www.netlify.com/).
-
-[![Deploy with Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/ladunjexa/nextjs14-notion)
 
 Check out [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
 
@@ -316,8 +300,6 @@ Check out [Next.js deployment documentation](https://nextjs.org/docs/deployment)
 
 ## 🔧 Contributing
 
-[![contributors](https://contrib.rocks/image?repo=ladunjexa/nextjs14-notion)](https://github.com/ladunjexa/nextjs14-notion/graphs/contributors)
-
 Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
 To fix a bug or enhance an existing module, follow these steps:
@@ -337,8 +319,7 @@ If you'd like to request a new function, feel free to do so by opening an issue 
 
 ## 💎 Acknowledgements
 
-I'd like to express my gratitude to the following people who helped me with this
-project and made it possible:
+I'd like to express my gratitude to the following people who helped me with this project and made it possible:
 
 - [Clerk](https://clerk.dev/)
 - [Convex](https://convex.dev/)
@@ -361,12 +342,9 @@ CodeWithAntonio. (2023). [Fullstack Notion Clone: Next.js 13, React, Convex, Tai
 
 ## 📞 Contact Us
 
-[![Telegram](https://img.shields.io/badge/Telegram-@ladunjexa-2CA5E0?style=social&logo=telegram&logoColor=000000)](https://t.me/ladunjexa)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-ladunjexa-blue?style=flat&logo=linkedin&logoColor=b0c0c0&labelColor=363D44)](https://www.linkedin.com/in/lironabutbul)
-[![Instagram](https://img.shields.io/badge/Instagram-ladunjexa-grey?style=flat&logo=instagram&logoColor=b0c0c0&labelColor=8134af)](https://www.instagram.com/ladunjexa)
-[![Discord](https://img.shields.io/badge/Discord-ladunjexa-7289da?style=flat&logo=discord&logoColor=b0c0c0&labelColor=2c2f33)](https://discord.com/users/827996364331810816)
+`m^{k\phi(n)} \equiv 1^k \equiv 1 \pmod{n}`
 
-<!-- [![Twitter](https://img.shields.io/twitter/follow/ladunjexa.svg?style=social)](https://twitter.com/intent/follow?screen_name=ladunjexa) -->
+&lt;!-- --&gt;
 
 ## 📋 License
 

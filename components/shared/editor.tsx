@@ -3,8 +3,10 @@
 import { useTheme } from "next-themes";
 import { useState, useEffect, useCallback, ChangeEvent } from "react";
 import {
+  BlockIdentifier,
   BlockNoteEditor,
   BlockNoteSchema,
+  StyledText,
   defaultBlockSpecs,
   filterSuggestionItems,
   insertOrUpdateBlock,
@@ -29,12 +31,9 @@ interface EditorProps {
   newContent?: string | PartialBlock[]; // Add newContent prop
 }
 
-const Editor = ({
-  onChange,
-  initialContent,
-  editable,
-  newContent,
-}: EditorProps) => {
+// type BlockIdentifier = string | Block;
+
+const Editor = ({ onChange, initialContent, newContent }: EditorProps) => {
   const { resolvedTheme } = useTheme();
   const { edgestore } = useEdgeStore();
 
@@ -89,17 +88,23 @@ const Editor = ({
     icon: <RiFilePdfFill />,
   });
 
+  // type BlockIdentifier = string | PartialBlock;
+
+  // const blockidentifier: BlockIdentifier = '';
+
   useEffect(() => {
     async function loadInitialHTML() {
       if (newContent) {
         // Parse Markdown to HTML
         // const htmlContent = await editor.tryParseMarkdownToBlocks(newContent);
         // Parse HTML to Blocks
-        const blocks = await editor.tryParseHTMLToBlocks(newContent);
+        const blocks = await editor.tryParseMarkdownToBlocks(
+          Array.isArray(newContent) ? JSON.stringify(newContent) : newContent
+        );
         // Insert Blocks
         if (blocks.length > 0) {
-          const referenceBlock = editor.document[editor.document.length - 1]; // Insert at the end
-          editor.insertBlocks(blocks, referenceBlock, "after");
+          const referenceBlock = editor.document[0]; // Insert at the end
+          editor.insertBlocks(blocks, referenceBlock, "before");
         }
       }
     }
@@ -118,7 +123,7 @@ const Editor = ({
           getItems={async (query) =>
             // Gets all default slash menu items and `insertPDF` item.
             filterSuggestionItems(
-              [...getDefaultReactSlashMenuItems(editor), insertPDF(editor)],
+              [insertPDF(editor), ...getDefaultReactSlashMenuItems(editor)],
               query
             )
           }
