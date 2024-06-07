@@ -49,8 +49,8 @@ export async function POST(req: Request) {
 
     // Initialize the generative model with a model that supports multimodal input.
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-pro",
-      systemInstruction: "don't use latex format",
+      model: "gemini-1.5-flash",
+      systemInstruction: "Describe the image with to easier to understand and Detail",
     });
 
     // Generate content using text and the URI reference for the uploaded file.
@@ -62,7 +62,10 @@ export async function POST(req: Request) {
         },
       },
       {
-        text: "Describe the image with to easier to understand and Detail. The main point highligh with bullet point.",
+        text: `The first sentent have to be in H2 format, 
+        The main point highligh with bullet point,
+        every LaTex format convert to Code Format,
+        9`,
       },
     ]);
 
@@ -70,7 +73,7 @@ export async function POST(req: Request) {
     const text = await response.text();
 
     console.log(text);
-    
+
     await fileManager.deleteFile(uploadResult.file.name);
 
     console.log(`Deleted ${uploadResult.file.displayName}`);
