@@ -10,10 +10,11 @@ import { IconPicker } from "./icon-picker";
 
 import { api } from "@/convex/_generated/api";
 import { Doc } from "@/convex/_generated/dataModel";
-
-import { useCoverImage } from "@/hooks/use-cover-image"
+import { FileUploader } from "react-drag-drop-files";
+import { useCoverImage } from "@/hooks/use-cover-image";
 
 import { marked } from "marked";
+import { update } from "@/convex/documents";
 
 interface ToolbarProps {
   initialData: Doc<"documents">;
@@ -55,11 +56,10 @@ export const Toolbar = ({
     setIsAudioModalOpen(true);
   };
 
-  const handleAudioFileSelect = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    if (event.target.files && event.target.files[0]) {
-      setAudioFile(event.target.files[0]);
+  const handleAudioFileSelect = (files: FileList) => {
+    if (files && files.length > 0) {
+      const file = files[0]; // Select the first file
+      setAudioFile(file);
     }
   };
 
@@ -89,15 +89,17 @@ export const Toolbar = ({
       // Assuming the response contains the transcription text
       const transcriptionText = data.text;
 
-      const htmlText = transcriptionText;
+      setGeneratedText(transcriptionText);
 
-      // Set the generated text
-      if (typeof htmlText === "string") {
-        setGeneratedText(htmlText);
-      } else {
-        const resolvedHtmlText = await htmlText;
-        setGeneratedText(resolvedHtmlText);
-      }
+      // const htmlText = transcriptionText;
+
+      // // Set the generated text
+      // if (typeof htmlText === "string") {
+      //   setGeneratedText(htmlText);
+      // } else {
+      //   const resolvedHtmlText = await htmlText;
+      //   setGeneratedText(resolvedHtmlText);
+      // }
     } catch (error) {
       console.error("Error uploading/transcribing audio file:", error);
     } finally {
@@ -156,6 +158,7 @@ export const Toolbar = ({
   };
 
   // how to this
+  const fileTypes = ["JPEG", "PNG", "GIF", "PDF", "MP3", "JPG"];
 
   return (
     <div className="group relative pl-[54px]">
@@ -224,6 +227,7 @@ export const Toolbar = ({
           style={{
             overlay: {
               backgroundColor: "rgba(0, 0, 0, 0.5)",
+              transition: "opacity 0.3s ease", // Smooth overlay transition
             },
             content: {
               top: "50%",
@@ -236,11 +240,26 @@ export const Toolbar = ({
               borderRadius: "8px",
               width: "600px", // Increase the width
               height: "400px", // Increase the height
+              backgroundColor: "#90aeae", // Change background color
+              transition: "all 0.3s ease", // Smooth content transition
             },
           }}
         >
-          {/* <h2>Hello</h2> */}
-          <input type="file" onChange={handleAudioFileSelect} />
+          <div className="upload-style">
+            <FileUploader
+              multiple={true}
+              handleChange={handleAudioFileSelect}
+              name="file"
+              types={fileTypes}
+            />
+            <p>
+              {audioFile
+                ? `File name: ${audioFile.name}`
+                : "no files uploaded yet"}
+            </p>
+          </div>
+
+          {/* <input type="file" onChange={handleAudioFileSelect} /> */}
 
           <div className="mt-4 flex justify-end">
             <Button
@@ -249,7 +268,7 @@ export const Toolbar = ({
               size="sm"
               onClick={onUploadClick}
             >
-              Upload
+              Generate
             </Button>
             <Button
               className="ml-2 text-xs text-muted-foreground"

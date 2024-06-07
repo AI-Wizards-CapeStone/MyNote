@@ -1,74 +1,47 @@
-.alert {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-grow: 1;
-    border-radius: 4px;
-    height: 48px;
-    padding: 4px;
-}
- 
-.alert[data-alert-type="warning"] {
-    background-color: #fff6e6;
-}
- 
-.alert[data-alert-type="error"] {
-    background-color: #ffe6e6;
-}
- 
-.alert[data-alert-type="info"] {
-    background-color: #e6ebff;
-}
- 
-.alert[data-alert-type="success"] {
-    background-color: #e6ffe6;
-}
- 
-[data-color-scheme="dark"] .alert[data-alert-type="warning"] {
-    background-color: #805d20;
-}
- 
-[data-color-scheme="dark"] .alert[data-alert-type="error"] {
-    background-color: #802020;
-}
- 
-[data-color-scheme="dark"] .alert[data-alert-type="info"] {
-    background-color: #203380;
-}
- 
-[data-color-scheme="dark"] .alert[data-alert-type="success"] {
-    background-color: #208020;
-}
- 
-.alert-icon-wrapper {
-    border-radius: 16px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-left: 12px;
-    margin-right: 12px;
-    height: 18px;
-    width: 18px;
-    user-select: none;
-    cursor: pointer;
-}
- 
-.alert-icon[data-alert-icon-type="warning"] {
-    color: #e69819
-}
- 
-.alert-icon[data-alert-icon-type="error"] {
-    color: #d80d0d
-}
- 
-.alert-icon[data-alert-icon-type="info"] {
-    color: #507aff
-}
- 
-.alert-icon[data-alert-icon-type="success"] {
-    color: #0bc10b
-}
- 
-.inline-content {
-    flex-grow: 1;
-}
+/* Base theme */
+.bn-container[data-theming-css-variables-demo][data-color-scheme] {
+    --bn-colors-editor-text: #222222;
+    --bn-colors-editor-background: #ffeeee;
+    --bn-colors-menu-text: #ffffff;
+    --bn-colors-menu-background: #9b0000;
+    --bn-colors-tooltip-text: #ffffff;
+    --bn-colors-tooltip-background: #b00000;
+    --bn-colors-hovered-text: #ffffff;
+    --bn-colors-hovered-background: #b00000;
+    --bn-colors-selected-text: #ffffff;
+    --bn-colors-selected-background: #c50000;
+    --bn-colors-disabled-text: #9b0000;
+    --bn-colors-disabled-background: #7d0000;
+    --bn-colors-shadow: #640000;
+    --bn-colors-border: #870000;
+    --bn-colors-side-menu: #bababa;
+    --bn-color-highlight-colors: #ffffff;
+    --bn-border-radius: 4px;
+    --bn-font-family: Helvetica Neue, sans-serif;
+  }
+   
+  /* Changes for dark mode */
+  .bn-container[data-theming-css-variables-demo][data-color-scheme="dark"] {
+    --bn-colors-editor-text: #ffffff;
+    --bn-colors-editor-background: #a958ae;
+    --bn-colors-side-menu: #ffffff;
+  }
+   
+
+  .latex-content {
+    pointer-events: none;
+  }
+  
+  .latex-loading {
+    color: #aaa;
+    transform: scale(0.8);
+  }
+  
+  .latex-textarea {
+    outline: none;
+    border: none;
+    width: 100%;
+    min-height: 120px;
+    padding: 8px;
+    font-size: 16px;
+  }

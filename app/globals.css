@@ -86,3 +86,13 @@ body,
     @apply invert brightness-0 transition;
   }
 }
+
+.upload-style {
+  font-family: sans-serif;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  /* width: 100vw; */
+}
