@@ -19,10 +19,17 @@ import {
   getDefaultReactSlashMenuItems,
   useCreateBlockNote,
 } from "@blocknote/react";
-import { BlockNoteView } from "@blocknote/mantine";
+import {
+  BlockNoteView,
+  Theme,
+  darkDefaultTheme,
+  lightDefaultTheme,
+} from "@blocknote/mantine";
 import { useEdgeStore } from "@/lib/edgestore";
 import { PDF } from "./PDF";
 import { RiFilePdfFill } from "react-icons/ri";
+import { TbMathFunction } from "react-icons/tb";
+import { LaTex } from "./LaTex";
 
 interface EditorProps {
   onChange: (value: string) => void;
@@ -48,6 +55,7 @@ const Editor = ({ onChange, initialContent, newContent }: EditorProps) => {
       ...defaultBlockSpecs,
       // Adds the PDF block.
       pdf: PDF,
+      latex: LaTex,
     },
   });
 
@@ -84,8 +92,32 @@ const Editor = ({ onChange, initialContent, newContent }: EditorProps) => {
       });
     },
     aliases: ["pdf", "document", "embed", "file"],
-    group: "Other",
+    group: "Utilize",
+    subtext: "Used for a top-level heading",
     icon: <RiFilePdfFill />,
+  });
+
+  const insertLaTex = (editor: typeof schema.BlockNoteEditor) => ({
+    title: "MathType",
+    key: "latex",
+    subtext: "Used for a top-level heading",
+    aliases: ["latex", "heading1", "h1"],
+    group: "Utilize",
+    onItemClick: () => {
+      insertOrUpdateBlock(editor, {
+        type: "paragraph",
+        content: [
+          {
+            type: "latex",
+            props: {
+              open: true,
+            },
+            content: "\\sqrt{a^2 + b^2}",
+          },
+        ],
+      });
+    },
+    icon: <TbMathFunction />,
   });
 
   // type BlockIdentifier = string | PartialBlock;
@@ -103,8 +135,8 @@ const Editor = ({ onChange, initialContent, newContent }: EditorProps) => {
         );
         // Insert Blocks
         if (blocks.length > 0) {
-          const referenceBlock = editor.document[0]; // Insert at the end
-          editor.insertBlocks(blocks, referenceBlock, "before");
+          const referenceBlock = editor.document[editor.document.length - 1]; // Insert at the end
+          editor.insertBlocks(blocks, referenceBlock, "after");
         }
       }
     }
@@ -123,7 +155,11 @@ const Editor = ({ onChange, initialContent, newContent }: EditorProps) => {
           getItems={async (query) =>
             // Gets all default slash menu items and `insertPDF` item.
             filterSuggestionItems(
-              [insertPDF(editor), ...getDefaultReactSlashMenuItems(editor)],
+              [
+                insertPDF(editor),
+                insertLaTex(editor),
+                ...getDefaultReactSlashMenuItems(editor),
+              ],
               query
             )
           }
