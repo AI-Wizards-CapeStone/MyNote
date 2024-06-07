@@ -1,6 +1,6 @@
 import React from "react";
 //import globall style here
-import "../styles/global.css";
+// import "../styles/global.css";
 
 export default function PublicLayout({
   children,
