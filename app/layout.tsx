@@ -16,7 +16,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title:
-    "Notion - The all-in-one workspace for your notes, tasks, wikis, and databases.",
+    "MyNote - The all-in-one workspace for your notes, tasks, wikis, and databases.",
   description: "All your notes in one place, wherever you are. 📝",
   icons: {
     icon: [
