@@ -73,7 +73,7 @@ export const Toolbar = ({
       const formData = new FormData();
       formData.append("file", audioFile);
 
-      const response = await fetch("/api/uploadImage", {
+      const response = await fetch("/api/uploadAudio", {
         method: "POST",
         body: formData,
       });
