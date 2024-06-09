@@ -4,7 +4,7 @@ import React, { ElementRef, useRef, useState } from "react";
 import Modal from "react-modal";
 import { useMutation } from "convex/react";
 import TextareaAutosize from "react-textarea-autosize";
-import { ImageIcon, Smile, X, FileAudio, Moon, Sun } from "lucide-react";
+import { ImageIcon, Smile, X, FileAudio, FilePenLine,  Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { IconPicker } from "./icon-picker";
 
@@ -32,12 +32,16 @@ export const Toolbar = ({
   const [isEditing, setIsEditing] = useState(false);
   const [value, setValue] = useState(initialData.title);
   const [isAudioModalOpen, setIsAudioModalOpen] = useState(false);
+
   const update = useMutation(api.documents.update);
   const removeIcon = useMutation(api.documents.removeIcon);
   const [audioFile, setAudioFile] = useState<File | null>(null);
-  const [generatedText, setGeneratedText] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [LatexImage, setLatexImage] = useState<File | null>(null);
 
+  const [generatedText, setGeneratedText] = useState("");
+
+
+  const [loading, setLoading] = useState(false);
   const coverImage = useCoverImage();
 
   const handleGeneratedText = () => {
@@ -56,12 +60,14 @@ export const Toolbar = ({
     setIsAudioModalOpen(true);
   };
 
+
   const handleAudioFileSelect = (files: FileList) => {
     if (files && files.length > 0) {
       const file = files[0]; // Select the first file
       setAudioFile(file);
     }
   };
+
 
   const onUploadClick = async () => {
     if (!audioFile) return;
@@ -108,6 +114,8 @@ export const Toolbar = ({
     }
   };
 
+
+
   // handle Summarize text
 
   const closeAudioModal = () => {
@@ -115,6 +123,13 @@ export const Toolbar = ({
     setAudioFile(null);
     setGeneratedText("");
   };
+
+  const closeLatexModal = () => {
+    setIsLatexModalOpen(false);
+    setLatexImage(null);
+    setGeneratedLatex("");
+  };
+
 
   const enableInput = () => {
     if (preview) return;
@@ -220,6 +235,7 @@ export const Toolbar = ({
             Add audio
           </Button>
         )}
+        
         <Modal
           isOpen={isAudioModalOpen}
           onRequestClose={closeAudioModal}
@@ -298,6 +314,7 @@ export const Toolbar = ({
             )
           )}
         </Modal>
+
       </div>
       {isEditing && !preview ? (
         <div>
