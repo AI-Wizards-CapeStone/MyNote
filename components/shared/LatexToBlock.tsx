@@ -19,7 +19,7 @@ export function LatexToBlock<
 ): PartialBlock<BSchema, ISchema, SSchema>[] {
   return [
     {
-      type: "latex", // Assuming 'latex' is a valid type in your schema
+      type: "latex", 
       content: latex,
     },
   ];
