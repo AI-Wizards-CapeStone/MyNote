@@ -1,5 +1,8 @@
 "use client";
 
+import Modal from "react-modal";
+import { Button } from "@/components/ui/button";
+import { FileUploader } from "react-drag-drop-files";
 import { useTheme } from "next-themes";
 import { useState, useEffect, useCallback, ChangeEvent } from "react";
 import {
@@ -30,6 +33,7 @@ import { PDF } from "./PDF";
 import { RiFilePdfFill } from "react-icons/ri";
 import { TbMathFunction } from "react-icons/tb";
 import { LaTex } from "./LaTex";
+import { promise } from "zod";
 
 interface EditorProps {
   onChange: (value: string) => void;
@@ -97,25 +101,95 @@ const Editor = ({ onChange, initialContent, newContent }: EditorProps) => {
     icon: <RiFilePdfFill />,
   });
 
+  const [generatedLatex, setGeneratedLatex] = useState("");
+  const [LatexImage, setLatexImage] = useState<File | null>(null);
+  const [isLatexModalOpen, setIsLatexModalOpen] = useState(false);
+  const [loadingtex, setLoadingtex] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+
+
+  const handleAddImageClick =() => {
+    setIsLatexModalOpen(true);
+  }
+
+  const closeLatexModal = async() => {
+    setIsLatexModalOpen(false);
+    setLatexImage(null);
+    setGeneratedLatex("");
+    return;
+  };
+
+  const handleGeneratedLatex = () => {
+    const newLatex = generatedLatex;
+    setGeneratedLatex(newLatex);
+    insertOrUpdateBlock(editor, {
+      type: "paragraph",
+      content: [
+        {
+          type: "latex",
+          props: {
+            open: true,
+          },
+          content: generatedLatex,
+        },
+      ],
+    });
+    closeLatexModal();
+  }
+
+  const handleLatexFileSelect = (files: FileList) =>{
+    if (files && files.length>0){
+      const file = files[0];
+      setLatexImage(file)
+    }
+  }
+
+  const onUploadLatex = async() => {
+    if (!LatexImage) return;
+
+    setLoadingtex(true);
+    
+    try {
+      const formData = new FormData();
+      formData.append("image", LatexImage);
+
+      const response = await fetch("http://127.0.0.1:5001/predict", {
+        method: "POST",
+        body: formData,
+      });
+      if (!response.ok) {
+        throw new Error("Failed to upload image file");
+      }
+
+      const data = await response.json();
+      console.log(data);
+
+      const latextext = data.text;
+      setGeneratedLatex(latextext)
+
+      console.log(latextext)
+      
+
+    } catch(error) {
+      console.error("Error uploading latex file:", error);
+    }finally {
+      setLoadingtex(false);
+    }
+  }
+
+
+  const fileTypes = ["JPEG", "PNG", "GIF", "PDF", "MP3", "JPG"];
+
+
   const insertLaTex = (editor: typeof schema.BlockNoteEditor) => ({
     title: "MathType",
     key: "latex",
     subtext: "Used for a top-level heading",
     aliases: ["latex", "heading1", "h1"],
     group: "Utilize",
-    onItemClick: () => {
-      insertOrUpdateBlock(editor, {
-        type: "paragraph",
-        content: [
-          {
-            type: "latex",
-            props: {
-              open: true,
-            },
-            content: "\\sqrt{a^2 + b^2}",
-          },
-        ],
-      });
+    onItemClick: async() => {
+      handleAddImageClick();
     },
     icon: <TbMathFunction />,
   });
@@ -165,6 +239,87 @@ const Editor = ({ onChange, initialContent, newContent }: EditorProps) => {
           }
         />
       </BlockNoteView>
+
+      <Modal
+          isOpen={isLatexModalOpen}
+          onRequestClose={closeLatexModal}
+          ariaHideApp={false}
+          style={{
+            overlay: {
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              transition: "opacity 0.3s ease", // Smooth overlay transition
+            },
+            content: {
+              top: "50%",
+              left: "50%",
+              right: "auto",
+              bottom: "auto",
+              marginRight: "-50%",
+              transform: "translate(-50%, -50%)",
+              padding: "20px",
+              borderRadius: "8px",
+              width: "600px", // Increase the width
+              height: "400px", // Increase the height
+              backgroundColor: "#90aeae", // Change background color
+              transition: "all 0.3s ease", // Smooth content transition
+            },
+          }}
+        >
+          <div className="upload-style">
+            <FileUploader
+              multiple={true}
+              handleChange={handleLatexFileSelect}
+              name="file"
+              types={fileTypes}
+            />
+            <p>
+              {LatexImage
+                ? `Image name: ${LatexImage.name}`
+                : "no files uploaded yet"}
+            </p>
+          </div>
+
+          {/* <input type="file" onChange={handleAudioFileSelect} /> */}
+
+          <div className="mt-4 flex justify-end">
+            <Button
+              className="text-xs text-muted-foreground"
+              variant="outline"
+              size="sm"
+              onClick={onUploadLatex}
+            >
+              Image to latex!
+            </Button>
+            <Button
+              className="ml-2 text-xs text-muted-foreground"
+              variant="outline"
+              size="sm"
+              onClick={closeLatexModal}
+            >
+              Cancel
+            </Button>
+          </div>
+          {loading ? (
+            <div>Loading...</div>
+          ) : (
+            generatedLatex && (
+              <div className="mt-4">
+                <h3>Generated Latex:</h3>
+                <p>{generatedLatex}</p>
+                <Button
+                  className="mt-2 text-xs text-muted-foreground"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleGeneratedLatex}
+                >
+                  Add to Editor
+                </Button>
+              </div>
+            )
+          )}
+        </Modal>
+
+
     </div>
   );
 };
