@@ -46,7 +46,7 @@ export default function Documents() {
         className="hidden dark:block"
       />
       <h2 className="text-lg font-medium">
-        Welcome to {user?.firstName}&apos;s Notion
+        Welcome to {user?.firstName}&apos;s MyNote
       </h2>
       <Button onClick={onCreate}>
         <PlusCircle className="mr-2 h-4 w-4" /> Create a note

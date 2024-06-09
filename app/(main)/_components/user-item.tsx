@@ -27,7 +27,7 @@ export const UserItem = () => {
               <AvatarImage src={user?.imageUrl} />
             </Avatar>
             <span className="line-clamp-1 text-start font-medium">
-              {user?.firstName}&apos;s Notion
+              {user?.firstName}&apos;s MyNote
             </span>
           </div>
           <ChevronsLeftRight className="ml-2 h-4 w-4 rotate-90 text-muted-foreground" />
@@ -51,7 +51,7 @@ export const UserItem = () => {
             </div>
             <div className="space-y-1">
               <p className="line-clamp-1 text-sm">
-                {user?.fullName}&apos;s Notion
+                {user?.fullName}&apos;s MyNote
               </p>
             </div>
           </div>
