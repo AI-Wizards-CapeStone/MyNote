@@ -55,6 +55,7 @@
     "react-dom": "^18",
     "react-drag-drop-files": "^2.3.10",
     "react-dropzone": "^14.2.3",
+    "react-latex-next": "^3.0.0",
     "react-modal": "^3.16.1",
     "react-textarea-autosize": "^8.5.3",
     "sonner": "^1.2.0",
