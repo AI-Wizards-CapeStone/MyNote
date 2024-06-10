@@ -38,3 +38,6 @@ next-env.d.ts
 # git
 .git
 .gitignore
+
+#json
+*.json

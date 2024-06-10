@@ -36,7 +36,7 @@ export const Toolbar = ({
   const update = useMutation(api.documents.update);
   const removeIcon = useMutation(api.documents.removeIcon);
   const [audioFile, setAudioFile] = useState<File | null>(null);
-  const [LatexImage, setLatexImage] = useState<File | null>(null);
+  // const [LatexImage, setLatexImage] = useState<File | null>(null);
 
   const [generatedText, setGeneratedText] = useState("");
 
@@ -44,17 +44,16 @@ export const Toolbar = ({
   const [loading, setLoading] = useState(false);
   const coverImage = useCoverImage();
 
-  const handleGeneratedText = () => {
-    const newText = generatedText;
-    setGeneratedText(newText);
-    onAddContent(newText);
+  const handleGeneratedText = () => {;
+    setGeneratedText(generatedText);
+    onAddContent(generatedText);
   };
 
-  const handleGeneratedTest = () => {
-    const newText = generatedText;
-    setGeneratedText(newText);
-    onAddContent(newText);
-  };
+  // const handleGeneratedTest = () => {
+  //   const newText = generatedText;
+  //   setGeneratedText(newText);
+  //   onAddContent(newText);
+  // };
 
   const handleAddAudioClick = () => {
     setIsAudioModalOpen(true);
@@ -66,6 +65,7 @@ export const Toolbar = ({
       const file = files[0]; // Select the first file
       setAudioFile(file);
     }
+    // sent file to route
   };
 
 
@@ -124,11 +124,11 @@ export const Toolbar = ({
     setGeneratedText("");
   };
 
-  const closeLatexModal = () => {
-    setIsLatexModalOpen(false);
-    setLatexImage(null);
-    setGeneratedLatex("");
-  };
+  // const closeLatexModal = () => {
+  //   setIsLatexModalOpen(false);
+  //   setLatexImage(null);
+  //   setGeneratedLatex("");
+  // };
 
 
   const enableInput = () => {
@@ -173,7 +173,7 @@ export const Toolbar = ({
   };
 
   // how to this
-  const fileTypes = ["JPEG", "PNG", "GIF", "PDF", "MP3", "JPG"];
+  const fileTypes = ["MP3"];
 
   return (
     <div className="group relative pl-[54px]">
