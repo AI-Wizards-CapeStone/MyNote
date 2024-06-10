@@ -1,73 +1,75 @@
-import { BlockNoteSchema, defaultBlockSpecs } from "@blocknote/core";
-import "@blocknote/core/fonts/inter.css";
-import {
-  BlockTypeSelectItem,
-  FormattingToolbar,
-  FormattingToolbarController,
-  blockTypeSelectItems,
-  useCreateBlockNote,
-} from "@blocknote/react";
-import { BlockNoteView } from "@blocknote/mantine";
-import "@blocknote/mantine/style.css";
-import { RiAlertFill } from "react-icons/ri";
- 
-import { Alert } from "./Alert";
- 
-// Our schema with block specs, which contain the configs and implementations
-// for blocks that we want our editor to use.
-const schema = BlockNoteSchema.create({
-  blockSpecs: {
-    // Adds all default blocks.
-    ...defaultBlockSpecs,
-    // Adds the Alert block.
-    alert: Alert,
-  },
-});
- 
-export default function App() {
-  // Creates a new editor instance.
-  const editor = useCreateBlockNote({
-    schema,
-    initialContent: [
-      {
-        type: "paragraph",
-        content: "Welcome to this demo!",
-      },
-      {
-        type: "paragraph",
-        content:
-          "Try selecting some text - you'll see the new 'Alert' item in the Block Type Select",
-      },
-      {
-        type: "alert",
-        content:
-          "Or select text in this alert - the Block Type Select also appears",
-      },
-      {
-        type: "paragraph",
-      },
-    ],
-  });
- 
-  // Renders the editor instance with the updated Block Type Select.
+'use client'
+import { useState, useEffect, useRef } from "react";
+
+export default function Home() {
+  const [text, setText] = useState("");
+  const [audioUrl, setAudioUrl] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const audioRef = useRef(null);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    setAudioUrl("");
+
+    try {
+      const response = await fetch("/api/tts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ text }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        // Append a timestamp to force a fresh fetch of the audio file
+        const timestampedUrl = `${data.audioUrl}?t=${new Date().getTime()}`;
+        setAudioUrl(timestampedUrl);
+      } else {
+        setError(data.message || "Something went wrong");
+      }
+    } catch (err) {
+      setError("Failed to generate audio");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (audioUrl && audioRef.current) {
+      audioRef.current.load();
+    }
+  }, [audioUrl]);
+
   return (
-    <BlockNoteView editor={editor} formattingToolbar={false} >
-      <FormattingToolbarController
-        formattingToolbar={() => (
-          <FormattingToolbar
-            blockTypeSelectItems={[
-              ...blockTypeSelectItems(editor.dictionary),
-              {
-                name: "Alert",
-                type: "alert",
-                icon: RiAlertFill,
-                isSelected: (block) => block.type === "alert",
-              } satisfies BlockTypeSelectItem,
-            ]}
-          />
-        )}
-      />
-    </BlockNoteView>
+    <div>
+      <h1>Text to Speech</h1>
+      <form onSubmit={handleSubmit}>
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Enter text here..."
+          required
+        />
+        <button type="submit" disabled={loading}>
+          {loading ? "Generating..." : "Generate Speech"}
+        </button>
+      </form>
+
+      {error && <p style={{ color: "red" }}>{error}</p>}
+
+      {audioUrl && (
+        <div>
+          <h2>Generated Audio</h2>
+          <audio controls ref={audioRef}>
+            <source src={audioUrl} type="audio/mpeg" />
+            Your browser does not support the audio element.
+          </audio>
+        </div>
+      )}
+    </div>
   );
 }
- 

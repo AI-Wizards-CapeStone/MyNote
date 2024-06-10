@@ -4,7 +4,7 @@ import Modal from "react-modal";
 import { Button } from "@/components/ui/button";
 import { FileUploader } from "react-drag-drop-files";
 import { useTheme } from "next-themes";
-import { useState, useEffect, useCallback, ChangeEvent } from "react";
+import { useState, useEffect, useCallback, ChangeEvent, useRef } from "react";
 import {
   BlockIdentifier,
   BlockNoteEditor,
@@ -34,12 +34,13 @@ import { RiFilePdfFill } from "react-icons/ri";
 import { TbMathFunction } from "react-icons/tb";
 import { LaTex } from "./LaTex";
 import { promise } from "zod";
+import { text } from "express";
 
 interface EditorProps {
   onChange: (value: string) => void;
   initialContent?: string;
   editable?: boolean;
-  newContent?: string | PartialBlock[]; // Add newContent prop
+  newContent?: string[] | PartialBlock[]; // Add newContent prop
 }
 
 // type BlockIdentifier = string | Block;
@@ -107,17 +108,14 @@ const Editor = ({ onChange, initialContent, newContent }: EditorProps) => {
   const [loadingtex, setLoadingtex] = useState(false);
   const [loading, setLoading] = useState(false);
 
-
-
-  const handleAddImageClick =() => {
+  const handleAddImageClick = () => {
     setIsLatexModalOpen(true);
-  }
+  };
 
-  const closeLatexModal = async() => {
+  const closeLatexModal = async () => {
     setIsLatexModalOpen(false);
     setLatexImage(null);
     setGeneratedLatex("");
-    return;
   };
 
   const handleGeneratedLatex = () => {
@@ -136,20 +134,44 @@ const Editor = ({ onChange, initialContent, newContent }: EditorProps) => {
       ],
     });
     closeLatexModal();
-  }
+  };
 
-  const handleLatexFileSelect = (files: FileList) =>{
-    if (files && files.length>0){
+  const handleLatexFileSelect = (files: FileList) => {
+    if (files && files.length > 0) {
       const file = files[0];
-      setLatexImage(file)
+      setLatexImage(file);
     }
-  }
+  };
+  // const editorChild = useCreateBlockNote();
 
-  const onUploadLatex = async() => {
+  // const onClick = () => {
+  //   editor.insertBlocks(
+  //     [
+  //       {
+  //         type: "audio",
+  //         props: {
+  //           url: audioSrc,
+  //         },
+  //         children: [
+  //           {
+  //             type: "paragraph",
+  //             content: responseText,
+  //           },
+  //         ],
+  //       },
+  //     ],
+  //     editor.document[editor.document.length - 1],
+  //     "after"
+  //   );
+  // };
+
+  // text to speech
+
+  const onUploadLatex = async () => {
     if (!LatexImage) return;
 
     setLoadingtex(true);
-    
+
     try {
       const formData = new FormData();
       formData.append("image", LatexImage);
@@ -166,21 +188,17 @@ const Editor = ({ onChange, initialContent, newContent }: EditorProps) => {
       console.log(data);
 
       const latextext = data.text;
-      setGeneratedLatex(latextext)
+      setGeneratedLatex(latextext);
 
-      console.log(latextext)
-      
-
-    } catch(error) {
+      console.log(latextext);
+    } catch (error) {
       console.error("Error uploading latex file:", error);
-    }finally {
+    } finally {
       setLoadingtex(false);
     }
-  }
+  };
 
-
-  const fileTypes = ["JPEG", "PNG", "GIF", "PDF", "MP3", "JPG"];
-
+  const fileTypes = ["JPEG", "PNG", "GIF", "JPG"];
 
   const insertLaTex = (editor: typeof schema.BlockNoteEditor) => ({
     title: "MathType",
@@ -188,29 +206,77 @@ const Editor = ({ onChange, initialContent, newContent }: EditorProps) => {
     subtext: "Used for a top-level heading",
     aliases: ["latex", "heading1", "h1"],
     group: "Utilize",
-    onItemClick: async() => {
+    onItemClick: async () => {
       handleAddImageClick();
     },
     icon: <TbMathFunction />,
   });
 
-  // type BlockIdentifier = string | PartialBlock;
+  // // text to speech block
+  // const [text, setText] = useState("");
+  // const [audioSrc, setAudioSrc] = useState("");
+  // const [responseText, setResponseText] = useState("");
+  // // const [initialContent, setInitialContent] = useState<
+  //   PartialBlock[] | undefined | "loading"
+  // >("loading");
 
-  // const blockidentifier: BlockIdentifier = '';
+  // const handleTextChange = (e) => {
+  //   setText(e.target.value);
+  // };
+
+  // const handleSubmit = async () => {
+  //   try {
+  //     const response = await fetch("/api/tts", {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({ text }),
+  //     });
+
+  //     if (!response.ok) {
+  //       throw new Error("Failed to fetch audio");
+  //     }
+
+  //     const result = await response.json();
+
+  //     setResponseText(result.text);
+  //     const audioBlob = new Blob([Buffer.from(result.audioContent, "base64")], {
+  //       type: "audio/mpeg",
+  //     });
+  //     const audioUrl = URL.createObjectURL(audioBlob);
+  //     setAudioSrc(audioUrl);
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // };
+
 
   useEffect(() => {
     async function loadInitialHTML() {
-      if (newContent) {
-        // Parse Markdown to HTML
-        // const htmlContent = await editor.tryParseMarkdownToBlocks(newContent);
-        // Parse HTML to Blocks
+      if (newContent && Array.isArray(newContent)) {
+        const [generatedText, audioUrl] = newContent;
         const blocks = await editor.tryParseMarkdownToBlocks(
-          Array.isArray(newContent) ? JSON.stringify(newContent) : newContent
+          String(generatedText)
         );
         // Insert Blocks
         if (blocks.length > 0) {
           const referenceBlock = editor.document[editor.document.length - 1]; // Insert at the end
-          editor.insertBlocks(blocks, referenceBlock, "after");
+          // editor.insertBlocks(blocks, referenceBlock, "after");
+          // const newBlock = editor.document[editor.document.length - 1]; // Insert at the end
+          editor.insertBlocks(
+            [
+              {
+                type: "audio",
+                props: {
+                  url: audioUrl,
+                },
+                children: blocks
+              },
+            ],
+            referenceBlock,
+            "after"
+          );
         }
       }
     }
@@ -239,87 +305,84 @@ const Editor = ({ onChange, initialContent, newContent }: EditorProps) => {
           }
         />
       </BlockNoteView>
-
       <Modal
-          isOpen={isLatexModalOpen}
-          onRequestClose={closeLatexModal}
-          ariaHideApp={false}
-          style={{
-            overlay: {
-              backgroundColor: "rgba(0, 0, 0, 0.5)",
-              transition: "opacity 0.3s ease", // Smooth overlay transition
-            },
-            content: {
-              top: "50%",
-              left: "50%",
-              right: "auto",
-              bottom: "auto",
-              marginRight: "-50%",
-              transform: "translate(-50%, -50%)",
-              padding: "20px",
-              borderRadius: "8px",
-              width: "600px", // Increase the width
-              height: "400px", // Increase the height
-              backgroundColor: "#90aeae", // Change background color
-              transition: "all 0.3s ease", // Smooth content transition
-            },
-          }}
-        >
-          <div className="upload-style">
-            <FileUploader
-              multiple={true}
-              handleChange={handleLatexFileSelect}
-              name="file"
-              types={fileTypes}
-            />
-            <p>
-              {LatexImage
-                ? `Image name: ${LatexImage.name}`
-                : "no files uploaded yet"}
-            </p>
-          </div>
+        isOpen={isLatexModalOpen}
+        onRequestClose={closeLatexModal}
+        ariaHideApp={false}
+        style={{
+          overlay: {
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            transition: "opacity 0.3s ease", // Smooth overlay transition
+          },
+          content: {
+            top: "50%",
+            left: "50%",
+            right: "auto",
+            bottom: "auto",
+            marginRight: "-50%",
+            transform: "translate(-50%, -50%)",
+            padding: "20px",
+            borderRadius: "8px",
+            width: "600px", // Increase the width
+            height: "400px", // Increase the height
+            backgroundColor: "#90aeae", // Change background color
+            transition: "all 0.3s ease", // Smooth content transition
+          },
+        }}
+      >
+        <div className="upload-style">
+          <FileUploader
+            multiple={true}
+            handleChange={handleLatexFileSelect}
+            name="file"
+            types={fileTypes}
+          />
+          <p>
+            {LatexImage
+              ? `Image name: ${LatexImage.name}`
+              : "no files uploaded yet"}
+          </p>
+        </div>
 
-          {/* <input type="file" onChange={handleAudioFileSelect} /> */}
+        {/* <input type="file" onChange={handleAudioFileSelect} /> */}
 
-          <div className="mt-4 flex justify-end">
-            <Button
-              className="text-xs text-muted-foreground"
-              variant="outline"
-              size="sm"
-              onClick={onUploadLatex}
-            >
-              Image to latex!
-            </Button>
-            <Button
-              className="ml-2 text-xs text-muted-foreground"
-              variant="outline"
-              size="sm"
-              onClick={closeLatexModal}
-            >
-              Cancel
-            </Button>
-          </div>
-          {loading ? (
-            <div>Loading...</div>
-          ) : (
-            generatedLatex && (
-              <div className="mt-4">
-                <h3>Generated Latex:</h3>
-                <p>{generatedLatex}</p>
-                <Button
-                  className="mt-2 text-xs text-muted-foreground"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleGeneratedLatex}
-                >
-                  Add to Editor
-                </Button>
-              </div>
-            )
-          )}
-        </Modal>
-
-
+        <div className="mt-4 flex justify-end">
+          <Button
+            className="text-xs text-muted-foreground"
+            variant="outline"
+            size="sm"
+            onClick={onUploadLatex}
+          >
+            Image to latex!
+          </Button>
+          <Button
+            className="ml-2 text-xs text-muted-foreground"
+            variant="outline"
+            size="sm"
+            onClick={closeLatexModal}
+          >
+            Cancel
+          </Button>
+        </div>
+        {loading ? (
+          <div>Loading...</div>
+        ) : (
+          generatedLatex && (
+            <div className="mt-4">
+              <h3>Generated Latex:</h3>
+              <p>{generatedLatex}</p>
+              <Button
+                className="mt-2 text-xs text-muted-foreground"
+                variant="outline"
+                size="sm"
+                onClick={handleGeneratedLatex}
+              >
+                Add to Editor
+              </Button>
+            </div>
+          )
+        )}
+      </Modal>
     </div>
   );
 };

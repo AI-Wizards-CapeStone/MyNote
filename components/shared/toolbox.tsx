@@ -19,7 +19,7 @@ import { update } from "@/convex/documents";
 interface ToolbarProps {
   initialData: Doc<"documents">;
   preview?: boolean;
-  onAddContent: (content: string) => void;
+  onAddContent: (content: string[]) => void;
 }
 
 export const Toolbar = ({
@@ -36,24 +36,20 @@ export const Toolbar = ({
   const update = useMutation(api.documents.update);
   const removeIcon = useMutation(api.documents.removeIcon);
   const [audioFile, setAudioFile] = useState<File | null>(null);
-  const [LatexImage, setLatexImage] = useState<File | null>(null);
+  // const [LatexImage, setLatexImage] = useState<File | null>(null);
 
   const [generatedText, setGeneratedText] = useState("");
+  // const [audioUrl, setAudioUrl] = useState("");
+  const [returnFile, setReturnFile] = useState<string[]>([]);
 
 
   const [loading, setLoading] = useState(false);
   const coverImage = useCoverImage();
 
   const handleGeneratedText = () => {
-    const newText = generatedText;
-    setGeneratedText(newText);
-    onAddContent(newText);
-  };
-
-  const handleGeneratedTest = () => {
-    const newText = generatedText;
-    setGeneratedText(newText);
-    onAddContent(newText);
+    setGeneratedText(generatedText);
+    onAddContent(returnFile);
+    closeAudioModal();
   };
 
   const handleAddAudioClick = () => {
@@ -66,6 +62,7 @@ export const Toolbar = ({
       const file = files[0]; // Select the first file
       setAudioFile(file);
     }
+    // sent file to route
   };
 
 
@@ -90,22 +87,20 @@ export const Toolbar = ({
 
       const data = await response.json();
 
-      console.log(data);
+      // console.log(data);
 
       // Assuming the response contains the transcription text
       const transcriptionText = data.text;
+      const audioURL = data.audioUrl;
+
+      console.log(audioURL);
+
+      setReturnFile((prevFiles) => [...prevFiles, transcriptionText]);
+      setReturnFile((prevFiles) => [...prevFiles, audioURL]);
+
 
       setGeneratedText(transcriptionText);
-
-      // const htmlText = transcriptionText;
-
-      // // Set the generated text
-      // if (typeof htmlText === "string") {
-      //   setGeneratedText(htmlText);
-      // } else {
-      //   const resolvedHtmlText = await htmlText;
-      //   setGeneratedText(resolvedHtmlText);
-      // }
+ 
     } catch (error) {
       console.error("Error uploading/transcribing audio file:", error);
     } finally {
@@ -124,11 +119,11 @@ export const Toolbar = ({
     setGeneratedText("");
   };
 
-  const closeLatexModal = () => {
-    setIsLatexModalOpen(false);
-    setLatexImage(null);
-    setGeneratedLatex("");
-  };
+  // const closeLatexModal = () => {
+  //   setIsLatexModalOpen(false);
+  //   setLatexImage(null);
+  //   setGeneratedLatex("");
+  // };
 
 
   const enableInput = () => {
@@ -173,7 +168,7 @@ export const Toolbar = ({
   };
 
   // how to this
-  const fileTypes = ["JPEG", "PNG", "GIF", "PDF", "MP3", "JPG"];
+  const fileTypes = ["MP3"];
 
   return (
     <div className="group relative pl-[54px]">
