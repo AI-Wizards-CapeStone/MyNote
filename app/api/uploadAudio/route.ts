@@ -2,7 +2,13 @@ import { NextResponse } from "next/server";
 import fs from "node:fs/promises";
 import { GoogleAIFileManager } from "@google/generative-ai/files"; // Replace "path/to/GoogleAIFileManager" with the actual path to the module.
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import markdownToTxt from 'markdown-to-txt';
+import path from "path";
+import { marked } from "marked";
 
+const markdownToPlainText = (markdown: string) => {
+  return marked(markdown, { renderer: new marked.Renderer() });
+};
 
 export async function POST(req: Request) {
   try {
@@ -36,6 +42,8 @@ export async function POST(req: Request) {
       `Uploaded file ${uploadResult.file.displayName} as: ${uploadResult.file.uri}`
     );
 
+    // ====================================================================================
+
     // Get a file's metadata.
     const getResult = await fileManager.getFile(uploadResult.file.name);
 
@@ -48,7 +56,7 @@ export async function POST(req: Request) {
     // Initialize the generative model with a model that supports multimodal input.
     const model = genAI.getGenerativeModel({
       model: "gemini-1.5-pro",
-      systemInstruction: "Generate to Korean Language",
+      systemInstruction: "",
     });
 
     // Generate content using text and the URI reference for the uploaded file.
@@ -60,20 +68,49 @@ export async function POST(req: Request) {
         },
       },
       {
-        text: `Summarize this audio, main point in bullet point. Use markdown to make document look formal and beautiful.`,
+        text: `Summarize this audio, the first sentent in header 2 format, main point in bullet point start with bold text. Use markdown to make document look formal and beautiful.`,
       },
     ]);
 
     const response = result.response;
     const text = await response.text();
 
-    console.log(text);
+    // console.log(text);
+
+    // ======================================================= sqlite
+
+    // Initialize SQLite database
+    // const dbPath = path.join(process.cwd(), "mydatabase.db");
+    const db = require("better-sqlite3")(
+      path.join(process.cwd(), "mydatabases.db")
+    );
+
+    // Create plaintext_data table if it doesn't exist
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS plaintext_data (
+        id INTEGER PRIMARY KEY,
+        markdown TEXT NOT NULL,
+        plainText TEXT NOT NULL
+      );
+    `);
+
+    const plainText = markdownToTxt(text);
+    const rawData = db.prepare(
+      "INSERT INTO plaintext_data (markdown, plainText) VALUES (?, ?)"
+    );
+    rawData.run(text, plainText);
+
+    // console.log(plainText);
+
+    // console.log(test);
 
     await fileManager.deleteFile(uploadResult.file.name);
 
     console.log(`Deleted ${uploadResult.file.displayName}`);
 
     // revalidatePath("/try");
+    // const rows = db.prepare("SELECT * FROM plaintext_data").all();
+    // console.log(rows);
 
     // Return the file URL in the response
     return NextResponse.json({ status: "success", text });
