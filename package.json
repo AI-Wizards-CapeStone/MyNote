@@ -3,10 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "all": "concurrently \"npm run dev\" \"npm run server\" \"npm start\"",
+    "dev": "next dev -p 3003",
     "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "start": "nodemon server/server.js",
+    "lint": "next lint",
+    "server": "python server/app.py"
   },
   "dependencies": {
     "@ai-sdk/openai": "^0.0.20",
@@ -17,6 +19,7 @@
     "@clerk/clerk-react": "^4.30.5",
     "@edgestore/react": "^0.1.6",
     "@edgestore/server": "^0.1.6",
+    "@google/generative-ai": "^0.12.0",
     "@mantine/core": "^7.7.1",
     "@nextui-org/dropdown": "^2.1.23",
     "@radix-ui/react-alert-dialog": "^1.0.5",
@@ -33,6 +36,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "cmdk": "^0.2.0",
+    "concurrently": "^8.2.2",
     "convex": "^1.12.1",
     "cors": "^2.8.5",
     "emoji-picker-react": "^4.7.18",
