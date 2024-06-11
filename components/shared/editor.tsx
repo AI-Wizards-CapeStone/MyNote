@@ -60,7 +60,7 @@ const Editor = ({ onChange, initialContent, newContent }: EditorProps) => {
       ...defaultBlockSpecs,
       // Adds the PDF block.
       pdf: PDF,
-      latex: LaTex,
+      // latex: LaTex,
     },
   });
 
@@ -142,30 +142,6 @@ const Editor = ({ onChange, initialContent, newContent }: EditorProps) => {
       setLatexImage(file);
     }
   };
-  // const editorChild = useCreateBlockNote();
-
-  // const onClick = () => {
-  //   editor.insertBlocks(
-  //     [
-  //       {
-  //         type: "audio",
-  //         props: {
-  //           url: audioSrc,
-  //         },
-  //         children: [
-  //           {
-  //             type: "paragraph",
-  //             content: responseText,
-  //           },
-  //         ],
-  //       },
-  //     ],
-  //     editor.document[editor.document.length - 1],
-  //     "after"
-  //   );
-  // };
-
-  // text to speech
 
   const onUploadLatex = async () => {
     if (!LatexImage) return;
@@ -212,58 +188,15 @@ const Editor = ({ onChange, initialContent, newContent }: EditorProps) => {
     icon: <TbMathFunction />,
   });
 
-  // // text to speech block
-  // const [text, setText] = useState("");
-  // const [audioSrc, setAudioSrc] = useState("");
-  // const [responseText, setResponseText] = useState("");
-  // // const [initialContent, setInitialContent] = useState<
-  //   PartialBlock[] | undefined | "loading"
-  // >("loading");
-
-  // const handleTextChange = (e) => {
-  //   setText(e.target.value);
-  // };
-
-  // const handleSubmit = async () => {
-  //   try {
-  //     const response = await fetch("/api/tts", {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify({ text }),
-  //     });
-
-  //     if (!response.ok) {
-  //       throw new Error("Failed to fetch audio");
-  //     }
-
-  //     const result = await response.json();
-
-  //     setResponseText(result.text);
-  //     const audioBlob = new Blob([Buffer.from(result.audioContent, "base64")], {
-  //       type: "audio/mpeg",
-  //     });
-  //     const audioUrl = URL.createObjectURL(audioBlob);
-  //     setAudioSrc(audioUrl);
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // };
-
 
   useEffect(() => {
-    async function loadInitialHTML() {
+    const loadInitialHTML = async () => {
       if (newContent && Array.isArray(newContent)) {
         const [generatedText, audioUrl] = newContent;
-        const blocks = await editor.tryParseMarkdownToBlocks(
-          String(generatedText)
-        );
-        // Insert Blocks
+        const blocks = await editor.tryParseMarkdownToBlocks(String(generatedText));
+        
         if (blocks.length > 0) {
           const referenceBlock = editor.document[editor.document.length - 1]; // Insert at the end
-          // editor.insertBlocks(blocks, referenceBlock, "after");
-          // const newBlock = editor.document[editor.document.length - 1]; // Insert at the end
           editor.insertBlocks(
             [
               {
@@ -279,7 +212,8 @@ const Editor = ({ onChange, initialContent, newContent }: EditorProps) => {
           );
         }
       }
-    }
+    };
+  
     loadInitialHTML();
   }, [newContent, editor]);
 
