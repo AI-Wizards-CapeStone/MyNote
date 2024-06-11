@@ -46,6 +46,8 @@
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-tailwindcss": "^3.14.3",
     "formidable": "^3.5.1",
+    "franc": "^6.2.0",
+    "langdetect": "^0.2.1",
     "lucide-react": "^0.331.0",
     "markdown-to-txt": "^2.0.1",
     "marked": "^12.0.2",
@@ -81,6 +83,7 @@
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/formidable": "^3.4.5",
+    "@types/langdetect": "^0.2.2",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

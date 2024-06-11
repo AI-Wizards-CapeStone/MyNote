@@ -5,7 +5,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import markdownToTxt from "markdown-to-txt";
 import path from "path";
 
-export async function POST(req : NextRequest) {
+export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const file = formData.get("file");
@@ -46,7 +46,9 @@ export async function POST(req : NextRequest) {
         },
       },
       {
-        text: `Summarize this audio, the first sentence in header 2 format, main point in numbered list point start with bold text. Use markdown to make document look formal and beautiful.`,
+        text: `Create a brief summary of the key points discussed in the provided audio file. Highlight the main themes, arguments, or findings presented, along with any noteworthy insights or conclusions.`
+        // text : `이 오디오를 요약하면, 헤더 2 형식의 첫 문장, 번호가 매겨진 목록 포인트의 주요 지점은 굵은 텍스트로 시작합니다. 마크다운을 사용하여 문서를 형식적이고 아름답게 보이도록 하고, 한국어로 변환합니다.`
+        // text: `Summarize this audio, the first sentence in header 2 format, main point in bullet point start with bold text. Use markdown to make document look formal and beautiful.`,
       },
     ]);
 
@@ -70,9 +72,16 @@ export async function POST(req : NextRequest) {
 
     const resultTTS = await ttsResponse.json();
 
+    await fileManager.deleteFile(uploadResult.file.name);
+    console.log(`Deleted ${uploadResult.file.displayName}`);
+
     if (ttsResponse.ok) {
       const timestampedUrl = `${resultTTS.audioUrl}?t=${new Date().getTime()}`;
-      return NextResponse.json({ status: "success", text, audioUrl: timestampedUrl });
+      return NextResponse.json({
+        status: "success",
+        text,
+        audioUrl: timestampedUrl,
+      });
     } else {
       throw new Error(resultTTS.message || "Something went wrong");
     }
