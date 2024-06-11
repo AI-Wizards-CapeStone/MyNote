@@ -3,7 +3,7 @@ import { TextToSpeechClient } from "@google-cloud/text-to-speech";
 import fs from "fs";
 import path from "path";
 import util from "util";
-import { JSONParser } from "formidable/parsers";
+import { franc } from "franc";
 
 // Create a client
 const client = new TextToSpeechClient({
@@ -26,13 +26,30 @@ export const POST = async (req: NextRequest, res: NextResponse) => {
       );
     }
 
+    // Detect language
+    const lang = franc(text, { minLength: 3 });
+
+    let languageCode = "en-US";
+    let ssmlGender = "JOURNEY";
+    let voiceName = "en-US-Journey-F";
+
+    if (lang === "kor") {
+      languageCode = "ko-KR";
+      ssmlGender = "NEUTRAL";
+      voiceName = "ko-KR-Wavenet-A";
+    } else if (lang === "eng") {
+      languageCode = "en-US";
+      ssmlGender = "JOURNEY";
+      voiceName = "en-US-Journey-F";
+    }
+
     // Construct the request
     const request = {
       input: { text },
       voice: {
-        languageCode: "en-US",
-        ssmlGender: "CASUAL",
-        name: "en-US-Casual-K",
+        languageCode,
+        ssmlGender,
+        name: voiceName,
       },
       audioConfig: { audioEncoding: "MP3" },
     };
@@ -40,19 +57,18 @@ export const POST = async (req: NextRequest, res: NextResponse) => {
     // Performs the text-to-speech request
     const [response] = await client.synthesizeSpeech(request);
 
+    // Generate a unique filename based on timestamp
+    const timestamp = new Date().getTime(); // Current timestamp
+    const audioFileName = `output_${timestamp}.mp3`;
+    const audioFilePath = path.join(process.cwd(), "public/audio", audioFileName);
+
     // Write the binary audio content to a local file
     const writeFile = util.promisify(fs.writeFile);
-    const audioFileName = path.join(process.cwd(), "public/audio/output.mp3");
-    try {
-      await writeFile(audioFileName, response.audioContent, "binary");
-      console.log("MP3 file created successfully:", audioFileName);
-    } catch (error) {
-      console.error("Error creating MP3 file:", error);
-    }
-    // await writeFile(audioFileName, response.audioContent, "binary");
+    await writeFile(audioFilePath, response.audioContent, "binary");
+    console.log("MP3 file created successfully:", audioFilePath);
 
     // Generate a URL for the audio file
-    const audioUrl = `/audio/output.mp3`;
+    const audioUrl = `/audio/${audioFileName}`;
 
     return NextResponse.json({ audioUrl });
   } catch (error) {

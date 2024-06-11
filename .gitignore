@@ -15,7 +15,7 @@
 
 # production
 /build
-
+*.mp3
 # misc
 .DS_Store
 *.pem
