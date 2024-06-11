@@ -4,7 +4,7 @@ import Modal from "react-modal";
 import { Button } from "@/components/ui/button";
 import { FileUploader } from "react-drag-drop-files";
 import { useTheme } from "next-themes";
-import { useState, useEffect, useCallback, ChangeEvent } from "react";
+import { useState, useEffect, useCallback, ChangeEvent, useRef } from "react";
 import {
   BlockIdentifier,
   BlockNoteEditor,
@@ -34,12 +34,13 @@ import { RiFilePdfFill } from "react-icons/ri";
 import { TbMathFunction } from "react-icons/tb";
 import { LaTex } from "./LaTex";
 import { promise } from "zod";
+import { text } from "express";
 
 interface EditorProps {
   onChange: (value: string) => void;
   initialContent?: string;
   editable?: boolean;
-  newContent?: string | PartialBlock[]; // Add newContent prop
+  newContent?: string[] | PartialBlock[]; // Add newContent prop
 }
 
 // type BlockIdentifier = string | Block;
@@ -211,69 +212,69 @@ const Editor = ({ onChange, initialContent, newContent }: EditorProps) => {
     icon: <TbMathFunction />,
   });
 
-  // text to speech block
-  const [text, setText] = useState("");
-  const [audioSrc, setAudioSrc] = useState("");
-  const [responseText, setResponseText] = useState("");
-  // const [initialContent, setInitialContent] = useState<
+  // // text to speech block
+  // const [text, setText] = useState("");
+  // const [audioSrc, setAudioSrc] = useState("");
+  // const [responseText, setResponseText] = useState("");
+  // // const [initialContent, setInitialContent] = useState<
   //   PartialBlock[] | undefined | "loading"
   // >("loading");
 
-  const handleTextChange = (e) => {
-    setText(e.target.value);
-  };
+  // const handleTextChange = (e) => {
+  //   setText(e.target.value);
+  // };
 
-  const handleSubmit = async () => {
-    try {
-      const response = await fetch("/api/tts", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ text }),
-      });
+  // const handleSubmit = async () => {
+  //   try {
+  //     const response = await fetch("/api/tts", {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({ text }),
+  //     });
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch audio");
-      }
+  //     if (!response.ok) {
+  //       throw new Error("Failed to fetch audio");
+  //     }
 
-      const result = await response.json();
+  //     const result = await response.json();
 
-      setResponseText(result.text);
-      const audioBlob = new Blob([Buffer.from(result.audioContent, "base64")], {
-        type: "audio/mpeg",
-      });
-      const audioUrl = URL.createObjectURL(audioBlob);
-      setAudioSrc(audioUrl);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  //     setResponseText(result.text);
+  //     const audioBlob = new Blob([Buffer.from(result.audioContent, "base64")], {
+  //       type: "audio/mpeg",
+  //     });
+  //     const audioUrl = URL.createObjectURL(audioBlob);
+  //     setAudioSrc(audioUrl);
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // };
+
 
   useEffect(() => {
     async function loadInitialHTML() {
-      if (newContent) {
-        // Parse Markdown to HTML
-        // const htmlContent = await editor.tryParseMarkdownToBlocks(newContent);
-        // Parse HTML to Blocks
+      if (newContent && Array.isArray(newContent)) {
+        const [generatedText, audioUrl] = newContent;
         const blocks = await editor.tryParseMarkdownToBlocks(
-          Array.isArray(newContent) ? JSON.stringify(newContent) : newContent
+          String(generatedText)
         );
         // Insert Blocks
         if (blocks.length > 0) {
           const referenceBlock = editor.document[editor.document.length - 1]; // Insert at the end
-          editor.insertBlocks(blocks, referenceBlock, "after");
-          const newBlock = editor.document[editor.document.length - 1]; // Insert at the end
+          // editor.insertBlocks(blocks, referenceBlock, "after");
+          // const newBlock = editor.document[editor.document.length - 1]; // Insert at the end
           editor.insertBlocks(
             [
               {
                 type: "audio",
                 props: {
-                  url: audioSrc,
+                  url: audioUrl,
                 },
+                children: blocks
               },
             ],
-            newBlock,
+            referenceBlock,
             "after"
           );
         }
@@ -304,7 +305,6 @@ const Editor = ({ onChange, initialContent, newContent }: EditorProps) => {
           }
         />
       </BlockNoteView>
-
       <Modal
         isOpen={isLatexModalOpen}
         onRequestClose={closeLatexModal}

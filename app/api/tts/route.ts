@@ -3,12 +3,7 @@ import { TextToSpeechClient } from "@google-cloud/text-to-speech";
 import fs from "fs";
 import path from "path";
 import util from "util";
-import { json } from "stream/consumers";
-import test from "node:test";
-
-const db = require("better-sqlite3")(
-  path.join(process.cwd(), "mydatabases.db")
-);
+import { JSONParser } from "formidable/parsers";
 
 // Create a client
 const client = new TextToSpeechClient({
@@ -18,15 +13,11 @@ const client = new TextToSpeechClient({
   ), // Update this path
 });
 
-const row = db
-  .prepare("SELECT * FROM plaintext_data ORDER BY id DESC LIMIT 1")
-  .get();
-console.log(row.markdown);
-
-export const POST = async (req: NextRequest) => {
+export const POST = async (req: NextRequest, res: NextResponse) => {
   try {
-    const md = row.markdown;
-    const text = row.plainText;
+    const data = await req.json();
+    const text = data.text;
+    console.log(text);
 
     if (!text) {
       return NextResponse.json(
@@ -48,31 +39,22 @@ export const POST = async (req: NextRequest) => {
 
     // Performs the text-to-speech request
     const [response] = await client.synthesizeSpeech(request);
-    const audioContentBase64 = Buffer.from(response.audioContent).toString(
-      "base64"
-    );
 
     // Write the binary audio content to a local file
-    // const writeFile = util.promisify(fs.writeFile);
-    // const audioFileName = path.join(process.cwd(), "output.mp3");
+    const writeFile = util.promisify(fs.writeFile);
+    const audioFileName = path.join(process.cwd(), "public/audio/output.mp3");
+    try {
+      await writeFile(audioFileName, response.audioContent, "binary");
+      console.log("MP3 file created successfully:", audioFileName);
+    } catch (error) {
+      console.error("Error creating MP3 file:", error);
+    }
     // await writeFile(audioFileName, response.audioContent, "binary");
 
-    // Read the file and send it as a response
-    // const audioBuffer = fs.readFileSync(audioFileName);
+    // Generate a URL for the audio file
+    const audioUrl = `/audio/output.mp3`;
 
-    // // Clean up the file after sending the response
-    // fs.unlinkSync(audioFileName);
-
-    // const headers = new Headers({
-    //   "Content-Type": "audio/mpeg",
-    //   "Content-Disposition": "attachment; filename=output.mp3",
-    // });
-
-    // return new NextResponse(audioBuffer, { headers });
-    return NextResponse.json({
-      test,
-      audioContent: audioContentBase64,
-    });
+    return NextResponse.json({ audioUrl });
   } catch (error) {
     console.error("ERROR:", error);
     return NextResponse.json(
