@@ -19,7 +19,7 @@ import { update } from "@/convex/documents";
 interface ToolbarProps {
   initialData: Doc<"documents">;
   preview?: boolean;
-  onAddContent: (content: string) => void;
+  onAddContent: (content: string[]) => void;
 }
 
 export const Toolbar = ({
@@ -39,21 +39,18 @@ export const Toolbar = ({
   // const [LatexImage, setLatexImage] = useState<File | null>(null);
 
   const [generatedText, setGeneratedText] = useState("");
+  // const [audioUrl, setAudioUrl] = useState("");
+  const [returnFile, setReturnFile] = useState<string[]>([]);
 
 
   const [loading, setLoading] = useState(false);
   const coverImage = useCoverImage();
 
-  const handleGeneratedText = () => {;
+  const handleGeneratedText = () => {
     setGeneratedText(generatedText);
-    onAddContent(generatedText);
+    onAddContent(returnFile);
+    closeAudioModal();
   };
-
-  // const handleGeneratedTest = () => {
-  //   const newText = generatedText;
-  //   setGeneratedText(newText);
-  //   onAddContent(newText);
-  // };
 
   const handleAddAudioClick = () => {
     setIsAudioModalOpen(true);
@@ -90,22 +87,20 @@ export const Toolbar = ({
 
       const data = await response.json();
 
-      console.log(data);
+      // console.log(data);
 
       // Assuming the response contains the transcription text
       const transcriptionText = data.text;
+      const audioURL = data.audioUrl;
+
+      console.log(audioURL);
+
+      setReturnFile((prevFiles) => [...prevFiles, transcriptionText]);
+      setReturnFile((prevFiles) => [...prevFiles, audioURL]);
+
 
       setGeneratedText(transcriptionText);
-
-      // const htmlText = transcriptionText;
-
-      // // Set the generated text
-      // if (typeof htmlText === "string") {
-      //   setGeneratedText(htmlText);
-      // } else {
-      //   const resolvedHtmlText = await htmlText;
-      //   setGeneratedText(resolvedHtmlText);
-      // }
+ 
     } catch (error) {
       console.error("Error uploading/transcribing audio file:", error);
     } finally {

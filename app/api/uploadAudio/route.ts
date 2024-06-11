@@ -1,31 +1,23 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import fs from "node:fs/promises";
 import { GoogleAIFileManager } from "@google/generative-ai/files"; // Replace "path/to/GoogleAIFileManager" with the actual path to the module.
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import markdownToTxt from 'markdown-to-txt';
+import markdownToTxt from "markdown-to-txt";
 import path from "path";
-import { marked } from "marked";
 
-const markdownToPlainText = (markdown: string) => {
-  return marked(markdown, { renderer: new marked.Renderer() });
-};
-
-export async function POST(req: Request) {
+export async function POST(req : NextRequest) {
   try {
     const formData = await req.formData();
-    const file = formData.get("file") as File;
+    const file = formData.get("file");
 
     // Save the file to a temporary location
     const arrayBuffer = await file.arrayBuffer();
     const buffer = new Uint8Array(arrayBuffer);
     const fileName = file.name;
-    const filePath = `./app/try/uploads/${fileName}`;
+    const filePath = path.join(process.cwd(), "public/uploads", fileName); // Adjust this path if needed
     await fs.writeFile(filePath, buffer);
 
-    // console.log(filePath);
-
-    // Get the URL of the saved file
-    const fileURL = `app/try/uploads/${fileName}`; // Adjust this URL based on your application setup
+    const fileURL = path.join("public/uploads", fileName);
 
     console.log(fileURL);
 
@@ -36,30 +28,16 @@ export async function POST(req: Request) {
       displayName: "audio",
     });
 
-    // /home/dev/project/nextjs14-notion/app/try/uploads/img178.png
-    // app/try/uploads/img178.png
     console.log(
       `Uploaded file ${uploadResult.file.displayName} as: ${uploadResult.file.uri}`
     );
 
-    // ====================================================================================
-
-    // Get a file's metadata.
-    const getResult = await fileManager.getFile(uploadResult.file.name);
-
-    // View the response.
-    console.log(`Retrieved file ${getResult.displayName} as ${getResult.uri}`);
-    // Perform any further actions if needed, such as revalidating cache
-
     const genAI = new GoogleGenerativeAI(apiKey);
-
-    // Initialize the generative model with a model that supports multimodal input.
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-pro",
+      model: "gemini-1.5-flash",
       systemInstruction: "",
     });
 
-    // Generate content using text and the URI reference for the uploaded file.
     const result = await model.generateContent([
       {
         fileData: {
@@ -68,54 +46,38 @@ export async function POST(req: Request) {
         },
       },
       {
-        text: `Summarize this audio, the first sentent in header 2 format, main point in bullet point start with bold text. Use markdown to make document look formal and beautiful.`,
+        text: `Summarize this audio, the first sentence in header 2 format, main point in numbered list point start with bold text. Use markdown to make document look formal and beautiful.`,
       },
     ]);
 
     const response = result.response;
     const text = await response.text();
-
-    // console.log(text);
-
-    // ======================================================= sqlite
-
-    // Initialize SQLite database
-    // const dbPath = path.join(process.cwd(), "mydatabase.db");
-    const db = require("better-sqlite3")(
-      path.join(process.cwd(), "mydatabases.db")
-    );
-
-    // Create plaintext_data table if it doesn't exist
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS plaintext_data (
-        id INTEGER PRIMARY KEY,
-        markdown TEXT NOT NULL,
-        plainText TEXT NOT NULL
-      );
-    `);
-
     const plainText = markdownToTxt(text);
-    const rawData = db.prepare(
-      "INSERT INTO plaintext_data (markdown, plainText) VALUES (?, ?)"
-    );
-    rawData.run(text, plainText);
 
-    // console.log(plainText);
+    // Call the internal text-to-speech API
+    // const baseUrl = `${req.headers.get("origin")}`;
+    const ttsResponse = await fetch(`http://localhost:3003/api/tts`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ text: plainText }),
+    });
 
-    // console.log(test);
+    if (!ttsResponse.ok) {
+      throw new Error("Failed to fetch audio");
+    }
 
-    await fileManager.deleteFile(uploadResult.file.name);
+    const resultTTS = await ttsResponse.json();
 
-    console.log(`Deleted ${uploadResult.file.displayName}`);
-
-    // revalidatePath("/try");
-    // const rows = db.prepare("SELECT * FROM plaintext_data").all();
-    // console.log(rows);
-
-    // Return the file URL in the response
-    return NextResponse.json({ status: "success", text });
+    if (ttsResponse.ok) {
+      const timestampedUrl = `${resultTTS.audioUrl}?t=${new Date().getTime()}`;
+      return NextResponse.json({ status: "success", text, audioUrl: timestampedUrl });
+    } else {
+      throw new Error(resultTTS.message || "Something went wrong");
+    }
   } catch (e) {
     console.error(e);
-    return NextResponse.json({ status: "fail", error: e });
+    return NextResponse.json({ status: "fail", error: e.message });
   }
 }

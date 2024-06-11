@@ -1,25 +1,19 @@
-"use client";
-import { Block, BlockNoteEditor, PartialBlock } from "@blocknote/core";
-import { BlockNoteView } from "@blocknote/mantine";
-import { useCreateBlockNote } from "@blocknote/react";
-import { useEffect, useState } from "react";
-import "react-h5-audio-player/lib/styles.css";
-import "@blocknote/mantine/style.css";
-import "@blocknote/core/fonts/inter.css";
+'use client'
+import { useState, useEffect, useRef } from "react";
 
-const App = () => {
+export default function Home() {
   const [text, setText] = useState("");
-  const [audioSrc, setAudioSrc] = useState("");
-  const [responseText, setResponseText] = useState("");
-  // const [initialContent, setInitialContent] = useState<
-  //   PartialBlock[] | undefined | "loading"
-  // >("loading");
+  const [audioUrl, setAudioUrl] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const audioRef = useRef(null);
 
-  const handleTextChange = (e) => {
-    setText(e.target.value);
-  };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    setAudioUrl("");
 
-  const handleSubmit = async () => {
     try {
       const response = await fetch("/api/tts", {
         method: "POST",
@@ -29,73 +23,53 @@ const App = () => {
         body: JSON.stringify({ text }),
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch audio");
+      const data = await response.json();
+      if (response.ok) {
+        // Append a timestamp to force a fresh fetch of the audio file
+        const timestampedUrl = `${data.audioUrl}?t=${new Date().getTime()}`;
+        setAudioUrl(timestampedUrl);
+      } else {
+        setError(data.message || "Something went wrong");
       }
-
-      const result = await response.json();
-
-      setResponseText(result.text);
-      const audioBlob = new Blob([Buffer.from(result.audioContent, "base64")], {
-        type: "audio/mpeg",
-      });
-      const audioUrl = URL.createObjectURL(audioBlob);
-      setAudioSrc(audioUrl);
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      setError("Failed to generate audio");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // async function saveToStorage(jsonBlocks: Block[]) {
-  //   // Save contents to local storage. You might want to debounce this or replace
-  //   // with a call to your API / database.
-  //   localStorage.setItem("editorContent", JSON.stringify(jsonBlocks));
-  // }
-
-  // async function loadFromStorage() {
-  //   // Gets the previously stored editor contents.
-  //   const storageString = localStorage.getItem("editorContent");
-  //   return storageString
-  //     ? (JSON.parse(storageString) as PartialBlock[])
-  //     : undefined;
-  // }
-
-  // type BlockIdentifier = string | Block;
-
-  const editor = useCreateBlockNote();
-
-  console.log(responseText)
-
-  const onClick = async () => {
-    const BlockIdentifier = editor.document[editor.document.length - 1];
-    const blocksFromMarkdown =
-      await editor.tryParseMarkdownToBlocks(responseText);
-
-    // editor.insertBlocks(blocksFromMarkdown, BlockIdentifier, "before");
-
-    
-
-    editor.replaceBlocks(BlockIdentifier, blocksFromMarkdown);
-  };
-
   useEffect(() => {
-    if (!audioSrc) return;
-    onClick();
-  }, [audioSrc]);
+    if (audioUrl && audioRef.current) {
+      audioRef.current.load();
+    }
+  }, [audioUrl]);
 
   return (
     <div>
-      <textarea
-        value={text}
-        onChange={handleTextChange}
-        placeholder="Enter text here"
-      />
-      <button onClick={handleSubmit}>Convert to Speech</button>
-      {/* {audioSrc && <audio controls src={audioSrc} />} */}
-      {audioSrc}
-      <BlockNoteView editor={editor} theme={"light"} />
+      <h1>Text to Speech</h1>
+      <form onSubmit={handleSubmit}>
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Enter text here..."
+          required
+        />
+        <button type="submit" disabled={loading}>
+          {loading ? "Generating..." : "Generate Speech"}
+        </button>
+      </form>
+
+      {error && <p style={{ color: "red" }}>{error}</p>}
+
+      {audioUrl && (
+        <div>
+          <h2>Generated Audio</h2>
+          <audio controls ref={audioRef}>
+            <source src={audioUrl} type="audio/mpeg" />
+            Your browser does not support the audio element.
+          </audio>
+        </div>
+      )}
     </div>
   );
-};
-
-export default App;
+}
