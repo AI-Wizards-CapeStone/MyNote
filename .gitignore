@@ -39,5 +39,9 @@ next-env.d.ts
 .git
 .gitignore
 
-#json
-*.json
+# Ignore Google service account JSON files
+credential.json
+
+
+# Ignore upload folder
+uploads/
