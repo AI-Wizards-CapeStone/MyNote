@@ -4,12 +4,9 @@ import Modal from "react-modal";
 import { Button } from "@/components/ui/button";
 import { FileUploader } from "react-drag-drop-files";
 import { useTheme } from "next-themes";
-import { useState, useEffect, useCallback, ChangeEvent, useRef } from "react";
+import { useState, useEffect } from "react";
 import {
-  BlockIdentifier,
-  BlockNoteEditor,
   BlockNoteSchema,
-  StyledText,
   defaultBlockSpecs,
   filterSuggestionItems,
   insertOrUpdateBlock,
@@ -24,17 +21,11 @@ import {
 } from "@blocknote/react";
 import {
   BlockNoteView,
-  Theme,
-  darkDefaultTheme,
-  lightDefaultTheme,
 } from "@blocknote/mantine";
 import { useEdgeStore } from "@/lib/edgestore";
 import { PDF } from "./PDF";
 import { RiFilePdfFill } from "react-icons/ri";
 import { TbMathFunction } from "react-icons/tb";
-import { LaTex } from "./LaTex";
-import { promise } from "zod";
-import { text } from "express";
 
 interface EditorProps {
   onChange: (value: string) => void;

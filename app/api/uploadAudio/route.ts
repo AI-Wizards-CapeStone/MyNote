@@ -4,11 +4,15 @@ import { GoogleAIFileManager } from "@google/generative-ai/files"; // Replace "p
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import markdownToTxt from "markdown-to-txt";
 import path from "path";
+import e from "express";
 
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const file = formData.get("file");
+    const language = formData.get("language");
+
+    // return NextResponse.json({ language });
 
     // Save the file to a temporary location
     const arrayBuffer = await file.arrayBuffer();
@@ -34,9 +38,17 @@ export async function POST(req: NextRequest) {
 
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
+      model: "gemini-1.5-pro",
       systemInstruction: "",
     });
+
+    let isKorean = false;
+
+    language === "Korean" ? isKorean = true : isKorean = false;
+
+    const textValue = isKorean
+      ? `제공된 오디오 파일에서 논의된 핵심 사항을 간략하게 요약한다. 제시된 주요 주제, 주장 또는 결과를 주목할 만한 통찰력이나 결론과 함께 강조한다. 그리고 한국어로 번역한다`
+      : `Create a brief summary of the key points discussed in the provided audio file. Highlight the main themes, arguments, or findings presented, along with any noteworthy insights or conclusions.`;
 
     const result = await model.generateContent([
       {
@@ -46,7 +58,8 @@ export async function POST(req: NextRequest) {
         },
       },
       {
-        text: `Create a brief summary of the key points discussed in the provided audio file. Highlight the main themes, arguments, or findings presented, along with any noteworthy insights or conclusions.`
+        text : textValue
+        // text: `Create a brief summary of the key points discussed in the provided audio file. Highlight the main themes, arguments, or findings presented, along with any noteworthy insights or conclusions`,
         // text : `이 오디오를 요약하면, 헤더 2 형식의 첫 문장, 번호가 매겨진 목록 포인트의 주요 지점은 굵은 텍스트로 시작합니다. 마크다운을 사용하여 문서를 형식적이고 아름답게 보이도록 하고, 한국어로 변환합니다.`
         // text: `Summarize this audio, the first sentence in header 2 format, main point in bullet point start with bold text. Use markdown to make document look formal and beautiful.`,
       },
