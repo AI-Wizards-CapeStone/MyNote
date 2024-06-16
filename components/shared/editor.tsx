@@ -19,13 +19,12 @@ import {
   getDefaultReactSlashMenuItems,
   useCreateBlockNote,
 } from "@blocknote/react";
-import {
-  BlockNoteView,
-} from "@blocknote/mantine";
+import { BlockNoteView } from "@blocknote/mantine";
 import { useEdgeStore } from "@/lib/edgestore";
 import { PDF } from "./PDF";
 import { RiFilePdfFill } from "react-icons/ri";
 import { TbMathFunction } from "react-icons/tb";
+import { LaTexImage } from "./LaTexImage";
 
 interface EditorProps {
   onChange: (value: string) => void;
@@ -51,6 +50,8 @@ const Editor = ({ onChange, initialContent, newContent }: EditorProps) => {
       ...defaultBlockSpecs,
       // Adds the PDF block.
       pdf: PDF,
+      lateximg: LaTexImage,
+
       // latex: LaTex,
     },
   });
@@ -179,13 +180,27 @@ const Editor = ({ onChange, initialContent, newContent }: EditorProps) => {
     icon: <TbMathFunction />,
   });
 
+  // latex to image
+  const insertLatexImg = (editor: typeof schema.BlockNoteEditor) => ({
+    title: "Math",
+    onItemClick: () => {
+      insertOrUpdateBlock(editor, {
+        type: "lateximg",
+      });
+    },
+    aliases: [],
+    group: "Other",
+    icon: <TbMathFunction />,
+  });
 
   useEffect(() => {
     const loadInitialHTML = async () => {
       if (newContent && Array.isArray(newContent)) {
         const [generatedText, audioUrl] = newContent;
-        const blocks = await editor.tryParseMarkdownToBlocks(String(generatedText));
-        
+        const blocks = await editor.tryParseMarkdownToBlocks(
+          String(generatedText)
+        );
+
         if (blocks.length > 0) {
           const referenceBlock = editor.document[editor.document.length - 1]; // Insert at the end
           editor.insertBlocks(
@@ -195,7 +210,7 @@ const Editor = ({ onChange, initialContent, newContent }: EditorProps) => {
                 props: {
                   url: audioUrl,
                 },
-                children: blocks
+                children: blocks,
               },
             ],
             referenceBlock,
@@ -204,7 +219,7 @@ const Editor = ({ onChange, initialContent, newContent }: EditorProps) => {
         }
       }
     };
-  
+
     loadInitialHTML();
   }, [newContent, editor]);
 
@@ -223,6 +238,7 @@ const Editor = ({ onChange, initialContent, newContent }: EditorProps) => {
               [
                 insertPDF(editor),
                 insertLaTex(editor),
+                insertLatexImg(editor),
                 ...getDefaultReactSlashMenuItems(editor),
               ],
               query

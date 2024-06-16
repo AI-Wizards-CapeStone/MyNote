@@ -3,12 +3,18 @@ import shutil
 import os
 import time
 from PIL import Image
+from dotenv import load_dotenv
 import matplotlib.pyplot as plt
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from google.oauth2 import service_account
 import google.generativeai as genai
 import imgbbpy
+from pydantic import BaseModel
+import sqlite3
+
+# Load environment variables from .env
+load_dotenv()
 
 app = FastAPI()
 
@@ -21,24 +27,28 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Google Generative AI configuration
-genai.configure(api_key="AIzaSyC5xHls3H-KrSXSDBjeExZvrzeZzrAwlkA")
+# Set up SQLite database in memory
+conn = sqlite3.connect(":memory:", check_same_thread=False)
+cursor = conn.cursor()
 
-# # Google Cloud project credentials
-# GOOGLE_APPLICATION_CREDENTIALS = "./future-sunrise-424210-u6-545e79acda11.json"
-# SCOPES = ["https://www.googleapis.com/auth/cloud-platform"]
+# Create images table
+cursor.execute("CREATE TABLE IF NOT EXISTS images (id TEXT PRIMARY KEY, url TEXT)")
 
-# # Load Google service account credentials
-# credentials = service_account.Credentials.from_service_account_file(
-#     GOOGLE_APPLICATION_CREDENTIALS, scopes=SCOPES)
+# Pydantic model for image data
+class ImageData(BaseModel):
+    id: str
+    url: str
+
+GOOGLE_API_KEY = os.getenv("GOOGLE_GENERATIVE_AI_API_KEY")
+genai.configure(api_key = GOOGLE_API_KEY)
 
 
-def latex_to_png(latex_code, output_path, dpi=300):
+def latex_to_png(latex_code, output_path, dpi=600):
     plt.rc('text', usetex=True)
     plt.rc('text.latex', preamble=r'\usepackage{amsmath}')
     plt.rcParams['mathtext.fontset'] = 'cm'
     fig, ax = plt.subplots(figsize=(1, 0.3), dpi=dpi)
-    ax.text(0.5, 0.5, latex_code, size=8, ha='left', va='center')
+    ax.text(0.5, 0.5, latex_code, size=12, ha='right', va='center')
     ax.axis('off')
     fig.patch.set_alpha(0.0)
     plt.savefig(output_path, format='png', dpi=dpi, bbox_inches='tight', pad_inches=0.1, transparent=True)
@@ -93,6 +103,32 @@ def get_latex_from_google_api(image_path):
     response = model.generate_content([sample_file, "Generate Latex code from this image"])
 
     return response.text
+
+
+
+# Endpoint to save image URL
+@app.post("/save-image")
+async def save_image(image_data: ImageData):
+    try:
+        cursor.execute("INSERT OR REPLACE INTO images (id, url) VALUES (?, ?)", (image_data.id, image_data.url))
+        conn.commit()
+        print(image_data.url)
+        return {"success": True}
+    except Exception as e:
+        return {"error": str(e)}
+
+# Endpoint to retrieve image URL
+@app.get("/image/{id}")
+async def get_image(id: str):
+    try:
+        cursor.execute("SELECT url FROM images WHERE id = ?", (id,))
+        row = cursor.fetchone()
+        if row:
+            return {"url": row[0]}
+        else:
+            raise HTTPException(status_code=404, detail="Image URL not found")
+    except Exception as e:
+        return {"error": str(e)}
 
 
 @app.post("/render-latex/")

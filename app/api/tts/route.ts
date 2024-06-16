@@ -9,7 +9,7 @@ import { franc } from "franc";
 const client = new TextToSpeechClient({
   keyFilename: path.join(
     process.cwd(),
-    "future-sunrise-424210-u6-545e79acda11.json"
+    "credential.json"
   ), // Update this path
 });
 
