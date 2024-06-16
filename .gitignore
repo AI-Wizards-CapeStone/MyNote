@@ -15,7 +15,7 @@
 
 # production
 /build
-
+*.mp3
 # misc
 .DS_Store
 *.pem
@@ -27,6 +27,8 @@ yarn-error.log*
 
 # local env files
 .env*.local
+.env
+.env*
 
 # vercel
 .vercel
@@ -38,3 +40,10 @@ next-env.d.ts
 # git
 .git
 .gitignore
+
+# Ignore Google service account JSON files
+credential.json
+
+
+# Ignore upload folder
+uploads/

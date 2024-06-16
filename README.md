@@ -30,7 +30,8 @@ All scripts are defined in the `package.json` file. Here is a list of all script
 | Script        | Action                                                         |
 | ------------- | -------------------------------------------------------------- |
 | `npm install` | Installs dependencies                                          |
-| `npm run all` | Starts local dev server at `localhost:3003` and backend server |
+| `npm run dev` | Starts local dev server at `localhost:3003` |
+| `fastapi run server/test.py --port 9000 --reload` | Starts local dev server at `localhost:9000` |
 
 ## 💡 Features
 

@@ -1,25 +1,27 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import fs from "node:fs/promises";
 import { GoogleAIFileManager } from "@google/generative-ai/files"; // Replace "path/to/GoogleAIFileManager" with the actual path to the module.
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import markdownToTxt from "markdown-to-txt";
+import path from "path";
+import e from "express";
 
-
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
-    const file = formData.get("file") as File;
+    const file = formData.get("file");
+    const language = formData.get("language");
+
+    // return NextResponse.json({ language });
 
     // Save the file to a temporary location
     const arrayBuffer = await file.arrayBuffer();
     const buffer = new Uint8Array(arrayBuffer);
     const fileName = file.name;
-    const filePath = `./app/try/uploads/${fileName}`;
+    const filePath = path.join(process.cwd(), "public/uploads", fileName); // Adjust this path if needed
     await fs.writeFile(filePath, buffer);
 
-    // console.log(filePath);
-
-    // Get the URL of the saved file
-    const fileURL = `app/try/uploads/${fileName}`; // Adjust this URL based on your application setup
+    const fileURL = path.join("public/uploads", fileName);
 
     console.log(fileURL);
 
@@ -30,28 +32,24 @@ export async function POST(req: Request) {
       displayName: "audio",
     });
 
-    // /home/dev/project/nextjs14-notion/app/try/uploads/img178.png
-    // app/try/uploads/img178.png
     console.log(
       `Uploaded file ${uploadResult.file.displayName} as: ${uploadResult.file.uri}`
     );
 
-    // Get a file's metadata.
-    const getResult = await fileManager.getFile(uploadResult.file.name);
-
-    // View the response.
-    console.log(`Retrieved file ${getResult.displayName} as ${getResult.uri}`);
-    // Perform any further actions if needed, such as revalidating cache
-
     const genAI = new GoogleGenerativeAI(apiKey);
-
-    // Initialize the generative model with a model that supports multimodal input.
     const model = genAI.getGenerativeModel({
       model: "gemini-1.5-pro",
-      systemInstruction: "Generate to Korean Language",
+      systemInstruction: "",
     });
 
-    // Generate content using text and the URI reference for the uploaded file.
+    let isKorean = false;
+
+    language === "Korean" ? isKorean = true : isKorean = false;
+
+    const textValue = isKorean
+      ? `제공된 오디오 파일에서 논의된 핵심 사항을 간략하게 요약한다. 제시된 주요 주제, 주장 또는 결과를 주목할 만한 통찰력이나 결론과 함께 강조한다. 그리고 한국어로 번역한다`
+      : `Create a brief summary of the key points discussed in the provided audio file. Highlight the main themes, arguments, or findings presented, along with any noteworthy insights or conclusions.`;
+
     const result = await model.generateContent([
       {
         fileData: {
@@ -60,25 +58,48 @@ export async function POST(req: Request) {
         },
       },
       {
-        text: `Summarize this audio, main point in bullet point. Use markdown to make document look formal and beautiful.`,
+        text : textValue
+        // text: `Create a brief summary of the key points discussed in the provided audio file. Highlight the main themes, arguments, or findings presented, along with any noteworthy insights or conclusions`,
+        // text : `이 오디오를 요약하면, 헤더 2 형식의 첫 문장, 번호가 매겨진 목록 포인트의 주요 지점은 굵은 텍스트로 시작합니다. 마크다운을 사용하여 문서를 형식적이고 아름답게 보이도록 하고, 한국어로 변환합니다.`
+        // text: `Summarize this audio, the first sentence in header 2 format, main point in bullet point start with bold text. Use markdown to make document look formal and beautiful.`,
       },
     ]);
 
     const response = result.response;
     const text = await response.text();
+    const plainText = markdownToTxt(text);
 
-    console.log(text);
+    // Call the internal text-to-speech API
+    // const baseUrl = `${req.headers.get("origin")}`;
+    const ttsResponse = await fetch(`http://localhost:3003/api/tts`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ text: plainText }),
+    });
+
+    if (!ttsResponse.ok) {
+      throw new Error("Failed to fetch audio");
+    }
+
+    const resultTTS = await ttsResponse.json();
 
     await fileManager.deleteFile(uploadResult.file.name);
-
     console.log(`Deleted ${uploadResult.file.displayName}`);
 
-    // revalidatePath("/try");
-
-    // Return the file URL in the response
-    return NextResponse.json({ status: "success", text });
+    if (ttsResponse.ok) {
+      const timestampedUrl = `${resultTTS.audioUrl}?t=${new Date().getTime()}`;
+      return NextResponse.json({
+        status: "success",
+        text,
+        audioUrl: timestampedUrl,
+      });
+    } else {
+      throw new Error(resultTTS.message || "Something went wrong");
+    }
   } catch (e) {
     console.error(e);
-    return NextResponse.json({ status: "fail", error: e });
+    return NextResponse.json({ status: "fail", error: e.message });
   }
 }

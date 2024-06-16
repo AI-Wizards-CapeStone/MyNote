@@ -1,25 +1,31 @@
+/* eslint-disable tailwindcss/classnames-order */
 "use client";
 
-import React, { ElementRef, useRef, useState } from "react";
+import React, { ElementRef, useEffect, useRef, useState } from "react";
 import Modal from "react-modal";
 import { useMutation } from "convex/react";
 import TextareaAutosize from "react-textarea-autosize";
-import { ImageIcon, Smile, X, FileAudio, FilePenLine,  Moon, Sun } from "lucide-react";
+import { ImageIcon, Smile, X, FileAudio, Text } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { IconPicker } from "./icon-picker";
-
 import { api } from "@/convex/_generated/api";
 import { Doc } from "@/convex/_generated/dataModel";
 import { FileUploader } from "react-drag-drop-files";
 import { useCoverImage } from "@/hooks/use-cover-image";
-
-import { marked } from "marked";
-import { update } from "@/convex/documents";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { LoadingButton } from "@/components/ui/loading-button";
+import { Textarea } from "@/components/ui/textarea";
 
 interface ToolbarProps {
   initialData: Doc<"documents">;
   preview?: boolean;
-  onAddContent: (content: string) => void;
+  onAddContent: (content: string[]) => void;
 }
 
 export const Toolbar = ({
@@ -36,76 +42,67 @@ export const Toolbar = ({
   const update = useMutation(api.documents.update);
   const removeIcon = useMutation(api.documents.removeIcon);
   const [audioFile, setAudioFile] = useState<File | null>(null);
-  const [LatexImage, setLatexImage] = useState<File | null>(null);
+  // const [LatexImage, setLatexImage] = useState<File | null>(null);
 
   const [generatedText, setGeneratedText] = useState("");
-
+  // const [audioUrl, setAudioUrl] = useState("");
+  const [returnFile, setReturnFile] = useState<string[]>([]);
 
   const [loading, setLoading] = useState(false);
   const coverImage = useCoverImage();
 
   const handleGeneratedText = () => {
-    const newText = generatedText;
-    setGeneratedText(newText);
-    onAddContent(newText);
-  };
-
-  const handleGeneratedTest = () => {
-    const newText = generatedText;
-    setGeneratedText(newText);
-    onAddContent(newText);
+    setGeneratedText(generatedText);
+    onAddContent(returnFile);
+    closeAudioModal();
   };
 
   const handleAddAudioClick = () => {
     setIsAudioModalOpen(true);
   };
 
-
   const handleAudioFileSelect = (files: FileList) => {
     if (files && files.length > 0) {
       const file = files[0]; // Select the first file
       setAudioFile(file);
     }
+    // sent file to route
   };
 
-
-  const onUploadClick = async () => {
+  const onUploadClick = async (event: React.MouseEvent<HTMLButtonElement>) => {
     if (!audioFile) return;
-
+  
     // Set loading state to true
     setLoading(true);
-
+  
     try {
       const formData = new FormData();
       formData.append("file", audioFile);
-
+      formData.append("language", language);
+  
       const response = await fetch("/api/uploadAudio", {
         method: "POST",
         body: formData,
       });
-
+  
       if (!response.ok) {
         throw new Error("Failed to upload audio file");
       }
-
+  
       const data = await response.json();
-
-      console.log(data);
-
+  
+      // console.log(data);
+  
       // Assuming the response contains the transcription text
       const transcriptionText = data.text;
-
+      const audioURL = data.audioUrl;
+  
+      console.log(audioURL);
+  
+      setReturnFile((prevFiles) => [...prevFiles, transcriptionText]);
+      setReturnFile((prevFiles) => [...prevFiles, audioURL]);
+  
       setGeneratedText(transcriptionText);
-
-      // const htmlText = transcriptionText;
-
-      // // Set the generated text
-      // if (typeof htmlText === "string") {
-      //   setGeneratedText(htmlText);
-      // } else {
-      //   const resolvedHtmlText = await htmlText;
-      //   setGeneratedText(resolvedHtmlText);
-      // }
     } catch (error) {
       console.error("Error uploading/transcribing audio file:", error);
     } finally {
@@ -114,22 +111,14 @@ export const Toolbar = ({
     }
   };
 
-
-
   // handle Summarize text
 
   const closeAudioModal = () => {
     setIsAudioModalOpen(false);
     setAudioFile(null);
     setGeneratedText("");
+    setReturnFile([]);
   };
-
-  const closeLatexModal = () => {
-    setIsLatexModalOpen(false);
-    setLatexImage(null);
-    setGeneratedLatex("");
-  };
-
 
   const enableInput = () => {
     if (preview) return;
@@ -173,7 +162,9 @@ export const Toolbar = ({
   };
 
   // how to this
-  const fileTypes = ["JPEG", "PNG", "GIF", "PDF", "MP3", "JPG"];
+  const fileTypes = ["MP3"];
+
+  const [language, setLanguage] = useState("English");
 
   return (
     <div className="group relative pl-[54px]">
@@ -235,7 +226,7 @@ export const Toolbar = ({
             Add audio
           </Button>
         )}
-        
+
         <Modal
           isOpen={isAudioModalOpen}
           onRequestClose={closeAudioModal}
@@ -275,46 +266,47 @@ export const Toolbar = ({
             </p>
           </div>
 
-          {/* <input type="file" onChange={handleAudioFileSelect} /> */}
-
           <div className="mt-4 flex justify-end">
-            <Button
-              className="text-xs text-muted-foreground"
-              variant="outline"
-              size="sm"
-              onClick={onUploadClick}
-            >
+            <Select onValueChange={setLanguage}>
+              <SelectTrigger className="mx-1 w-[180px]">
+                <SelectValue placeholder="Language" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="English">English</SelectItem>
+                <SelectItem value="Korean">Korean</SelectItem>
+              </SelectContent>
+            </Select>
+            {/* <p>{language}</p> */}
+            <Button variant="outline" onClick={onUploadClick} className="mx-1">
               Generate
             </Button>
             <Button
-              className="ml-2 text-xs text-muted-foreground"
               variant="outline"
-              size="sm"
               onClick={closeAudioModal}
+              className="mx-1"
             >
               Cancel
             </Button>
           </div>
           {loading ? (
-            <div>Loading...</div>
+            <div className="mt-4 flex justify-center">
+              <LoadingButton loading>Processing</LoadingButton>
+            </div>
           ) : (
+            // <div>Loading...</div>
             generatedText && (
               <div className="mt-4">
-                <h3>Generated Text:</h3>
-                <p>{generatedText}</p>
-                <Button
-                  className="mt-2 text-xs text-muted-foreground"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleGeneratedText}
-                >
-                  Add to Editor
-                </Button>
+                <h3 className="font-semibold p-2">Generated Text:</h3>
+                <p className="bg-slate-50 p-2 rounded">{generatedText}</p>
+                <div className="my-2 flex justify-center">
+                  <Button variant="outline" onClick={handleGeneratedText}>
+                    Add to Editor
+                  </Button>
+                </div>
               </div>
             )
           )}
         </Modal>
-
       </div>
       {isEditing && !preview ? (
         <div>
