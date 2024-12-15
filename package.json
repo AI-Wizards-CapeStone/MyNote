@@ -6,12 +6,11 @@
     "all": "concurrently \"npm run dev\" \"npm run server\" \"npm start\"",
     "dev": "next dev -p 3003",
     "build": "next build",
-    "start": "nodemon server/server.js",
+    "start": "next start",
     "lint": "next lint",
     "server": "python server/app.py"
   },
   "dependencies": {
-    "@ai-sdk/openai": "^0.0.20",
     "@blocknote/core": "^0.13.0",
     "@blocknote/mantine": "^0.13.0",
     "@blocknote/react": "^0.13.0",
