@@ -4,5 +4,9 @@
     "standard",
     "plugin:tailwindcss/recommended",
     "prettier"
-  ]
+  ],
+  "rules": {
+    "no-unused-vars": "off",
+    "spaced-comment": "off"
+  }
 }

@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Enable `public` folder for vercel
+  experimental: {
+    externalDir: true,
+  },
   images: {
     remotePatterns: [
       {
@@ -15,3 +19,4 @@ const nextConfig = {
 };
 
 module.exports = nextConfig;
+

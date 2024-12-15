@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { LoadingButton } from "@/components/ui/loading-button";
-import { Textarea } from "@/components/ui/textarea";
+// import { Textarea } from "@/components/ui/textarea";
 
 interface ToolbarProps {
   initialData: Doc<"documents">;
@@ -215,7 +215,7 @@ export const Toolbar = ({
           </Button>
         )}
         {/* Add new "Add Audio" button */}
-        {!initialData.audio && !preview && (
+        {!preview && (
           <Button
             className="text-xs text-muted-foreground"
             variant="outline"
@@ -296,10 +296,10 @@ export const Toolbar = ({
             // <div>Loading...</div>
             generatedText && (
               <div className="mt-4">
-                <h3 className="font-semibold p-2">Generated Text:</h3>
-                <p className="bg-slate-50 p-2 rounded">{generatedText}</p>
+                <h3 className="font-semibold p-2 dark:text-white">Generated Text:</h3>
+                <p className="bg-slate-50 p-2 rounded dark:bg-slate-800 dark:text-gray-100">{generatedText}</p>
                 <div className="my-2 flex justify-center">
-                  <Button variant="outline" onClick={handleGeneratedText}>
+                  <Button variant="outline" onClick={handleGeneratedText} className="dark:text-white">
                     Add to Editor
                   </Button>
                 </div>

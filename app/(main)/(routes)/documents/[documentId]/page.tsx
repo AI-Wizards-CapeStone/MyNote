@@ -16,7 +16,6 @@ import {
   DropdownItem,
 } from "@nextui-org/dropdown";
 import { useEdgeStore } from "@/lib/edgestore";
-import PDFViewer from "@/components/shared/pdf-viewer";
 
 type Props = {
   params: {
@@ -56,8 +55,8 @@ export default function Document({ params: { documentId } }: Props) {
     }
   }, [newContent]);
 
-  const handleAddContent = (generatedText: string) => {
-    setNewContent(generatedText); // Example content to add
+  const handleAddContent = (generatedTexts: string[]) => {
+    setNewContent(generatedTexts.join(" ")); // Example content to add
   };
 
   const { edgestore } = useEdgeStore();
@@ -156,7 +155,7 @@ export default function Document({ params: { documentId } }: Props) {
         <Editor
           onChange={onChange}
           initialContent={document.content}
-          newContent={newContent || undefined}
+          newContent={newContent ? [newContent] : undefined}
         />
       </div>
     </div>
